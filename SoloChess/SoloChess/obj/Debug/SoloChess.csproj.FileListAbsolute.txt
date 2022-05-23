@@ -1,0 +1,10 @@
+C:\Users\sverl\Desktop\SoloChess\SoloChess\bin\Debug\SoloChess.exe.config
+C:\Users\sverl\Desktop\SoloChess\SoloChess\bin\Debug\SoloChess.exe
+C:\Users\sverl\Desktop\SoloChess\SoloChess\bin\Debug\SoloChess.pdb
+C:\Users\sverl\Desktop\SoloChess\SoloChess\obj\Debug\SoloChess.csproj.AssemblyReference.cache
+C:\Users\sverl\Desktop\SoloChess\SoloChess\obj\Debug\SoloChess.csproj.SuggestedBindingRedirects.cache
+C:\Users\sverl\Desktop\SoloChess\SoloChess\obj\Debug\SoloChess.Properties.Resources.resources
+C:\Users\sverl\Desktop\SoloChess\SoloChess\obj\Debug\SoloChess.csproj.GenerateResource.cache
+C:\Users\sverl\Desktop\SoloChess\SoloChess\obj\Debug\SoloChess.csproj.CoreCompileInputs.cache
+C:\Users\sverl\Desktop\SoloChess\SoloChess\obj\Debug\SoloChess.exe
+C:\Users\sverl\Desktop\SoloChess\SoloChess\obj\Debug\SoloChess.pdb
