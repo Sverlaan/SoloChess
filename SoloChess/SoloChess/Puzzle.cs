@@ -164,7 +164,7 @@ namespace SoloChess
         public void ParseInstance(Instance instance)
         {
             this.start_config = instance;
-            this.grid = new Piece[instance.boardX, instance.boardY];
+            this.grid = new Piece[instance.width, instance.height];
             this.pieces = new Piece[instance.n];
 
             int i = 0;
@@ -178,34 +178,9 @@ namespace SoloChess
             }
         }
 
-        public Puzzle(StreamReader sr)
-        {
-            (this.grid, this.pieces) = ParseInput(sr);
-        }
+        
 
-        public static (Piece[,] board, Piece[]) ParseInput(StreamReader sr)
-        {
-            string[] line = sr.ReadLine().Split();
-            int N = int.Parse(line[0]);
-            int width = int.Parse(line[1]);
-            int height = int.Parse(line[2]);
-
-            Piece[,] grid = new Piece[width, height];
-            Piece[] vertices = new Piece[N];
-
-            for (int i = 0; i < N; i++)
-            {
-                line = sr.ReadLine().Split();
-                int type = int.Parse(line[0]);
-                int x = int.Parse(line[1]);
-                int y = int.Parse(line[2]);
-                int c = int.Parse(line[3]);
-                Piece v = new Piece(type, x, y, c);
-                vertices[i] = v;
-                grid[x, y] = v;
-            }
-            return (grid, vertices);
-        }
+        
 
 
         public void MoveVertex(Piece v, Piece w)
@@ -313,22 +288,7 @@ namespace SoloChess
         public void Restart()
         {
             ParseInstance(start_config);
-        }
-
-
-        public override string ToString()
-        {
-            StringBuilder sb = new StringBuilder();
-
-            sb.Append($"{pieces.Length} {grid.GetLength(0)} {grid.GetLength(1)}");
-            for (int i = 0; i < pieces.Length; i++)
-            {
-                Piece p = pieces[i];
-
-                sb.Append("\n");
-                sb.Append($"{p.State} {p.X} {p.Y}");
-            }
-            return sb.ToString();
+            InitNodes();
         }
     }
 
@@ -356,31 +316,68 @@ namespace SoloChess
         }
     }
 
+    public class Node
+    {
+        public Piece piece;
+        public Node next, prev;
+
+        public Node(Piece piece, Node next, Node prev)
+        {
+            this.piece = piece;
+            this.next = next;
+            this.prev = prev;
+        }
+
+        public void AddBack()
+        {
+            this.prev.next = this;
+            this.next.prev = this;
+        }
+    }
+
     public class Instance
     {
         public int n;
-        public int boardX;
-        public int boardY;
+        public int width;
+        public int height;
 
         public List<(int, int, int, int)> p_list;
 
         public Instance()
         {
             n = 0;
-            boardX = 8;
-            boardY = 8;
+            width = 8;
+            height = 8;
             p_list = new List<(int, int, int, int)>();
+        }
+
+        public Instance(StreamReader sr)
+        {
+            string[] line = sr.ReadLine().Split();
+            n = int.Parse(line[0]);
+            width = int.Parse(line[1]);
+            height = int.Parse(line[2]);
+
+            p_list = new List<(int, int, int, int)>();
+            for (int i = 0; i < n; i++)
+            {
+                line = sr.ReadLine().Split();
+                int type = int.Parse(line[0]);
+                int x = int.Parse(line[1]);
+                int y = int.Parse(line[2]);
+                int c = int.Parse(line[3]);
+                p_list.Add((type, x, y, c));
+            }
         }
 
         public void Add(int p, int x, int y, int c)
         {
             n++;
-            if (x > boardX)
-                boardX = x;
-            if (y > boardY)
-                boardY = y;
+            if (x > width)
+                width = x + 1;
+            if (y > height)
+                height = y + 1;
 
-            // keep sorted !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             p_list.Add((p, x, y, c));
         }
 
@@ -388,7 +385,7 @@ namespace SoloChess
         {
             StringBuilder sb = new StringBuilder();
 
-            sb.Append($"{n} {boardX} {boardY}");
+            sb.Append($"{n} {width} {height}");
             foreach((int p, int x, int y, int c) in p_list)
             {
                 sb.Append("\n");

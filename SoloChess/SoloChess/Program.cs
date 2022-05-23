@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
 namespace SoloChess
 {
@@ -17,8 +18,7 @@ namespace SoloChess
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            Generator gen = new Generator();
-            gen.WriteInputs(1, 24);
+            //Generator.WriteInputs(10, 12);
             Application.Run(new ChessForm());
         }
     }

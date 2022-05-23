@@ -11,17 +11,10 @@ namespace SoloChess
 {
     public class ChessForm : Form
     {
-        // Internal game state fields
-        Puzzle puzzle;
-        Generator gen;
-
-        // GUI fields
-        Canvas canvas;
+        ChessBoard board;
         Button input_button, generate_button, restart_button;
         NumericUpDown nup;
-        bool show_grid = false;
-        Image[] figures;
-        Piece clicked;
+
         int marge_small = 10;
         int marge_big = 20;
 
@@ -36,45 +29,15 @@ namespace SoloChess
             this.BackgroundImage = Properties.Resources.wood;
             this.DoubleBuffered = true;
 
-            // Load images from resources
-            figures = GetFigures();
-
-            // Initial board configuration
-            puzzle = new Puzzle(new Instance());
-            gen = new Generator();
-
-            // For blocking / discovered attacks
-            /*
-            this.verticesX = vertices; 
-            this.verticesY = vertices; 
-            this.verticesXY = vertices; 
-            this.verticesYX = vertices;
-            Array.Sort(verticesX, delegate (Piece x, Piece y) { return x.X.CompareTo(y.X); });
-            for (int i = 0; i < vertices.Length; i++)
-                verticesX[i].ordX = i;
-            Array.Sort(verticesY, delegate (Piece x, Piece y) { return x.Y.CompareTo(y.Y); });
-            for (int i = 0; i < vertices.Length; i++)
-                verticesY[i].ordY = i;
-            Array.Sort(verticesXY, delegate (Piece x, Piece y) { return (x.X + x.Y).CompareTo(y.X + y.Y); });
-            for (int i = 0; i < vertices.Length; i++)
-                verticesXY[i].ordXY = i;
-            Array.Sort(verticesYX, delegate (Piece x, Piece y) { return (x.X - x.Y).CompareTo(y.X - y.Y); });
-            for (int i = 0; i < vertices.Length; i++)
-                verticesYX[i].ordYX = i;
-            */
-
             // Canvas for drawing the board
-            canvas = new Canvas { Size = new Size(481, 481), Location = new Point(marge_big + marge_small, marge_big + marge_small), BackColor = Color.SaddleBrown };
+            board = new ChessBoard(new Puzzle(Generator.GenValidInstance(12)));
+            board.Location = new Point(marge_big + marge_small, marge_big + marge_small);
+            //canvas = new Canvas { Size = new Size(481, 481), Location = new Point(marge_big + marge_small, marge_big + marge_small), BackColor = Color.SaddleBrown };
 
-            input_button = new Button
-            {
-                Location = new Point(canvas.Right + marge_small + marge_big, canvas.Top - marge_small),
-                Text = "Input"
-            };
 
             restart_button = new Button
             {
-                Location = new Point(canvas.Left - marge_small, canvas.Bottom + marge_small + marge_big),
+                Location = new Point(board.Left - marge_small, board.Bottom + marge_small + marge_big),
                 Text = "Restart"
             };
 
@@ -87,73 +50,33 @@ namespace SoloChess
             nup = new NumericUpDown
             {
                 Location = new Point(generate_button.Right, generate_button.Top + 2),
-                Size = new Size(50, generate_button.Height)
+                Size = new Size(50, generate_button.Height),
+                Value = 12,
+                Maximum = 64,
+                Minimum = 2,
+                Increment = 1
+            };
+
+            input_button = new Button
+            {
+                Location = new Point(nup.Right + marge_big, generate_button.Top),
+                Text = "Input"
             };
 
             // Events
             this.Paint += DrawForm;
-            canvas.Paint += DrawBoard;
-            canvas.MouseClick += ClickBoard;
             input_button.Click += ChooseInput;
-            restart_button.Click += RestartPuzzle;
-            generate_button.Click += GenerateConfig;
+            restart_button.Click += RestartGame;
+            generate_button.Click += NewGame;
 
             // Add controls
-            Controls.AddRange(new Control[] { canvas, input_button, restart_button, generate_button, nup });
+            Controls.AddRange(new Control[] { board, input_button, restart_button, generate_button, nup });
         }
 
         private void DrawForm(object sender, PaintEventArgs pea)
         {
-            Graphics gr = pea.Graphics;
-
             // Draw the edge of the playboard
-            gr.FillRectangle(Brushes.SaddleBrown, canvas.Location.X - marge_small, canvas.Location.Y - marge_small, canvas.Width + marge_small * 2, canvas.Height + marge_small * 2);
-
-        }
-
-        private void DrawBoard(object sender, PaintEventArgs pea)
-        {
-            Graphics gr = pea.Graphics;
-            int cellsize = canvas.Width / puzzle.grid.GetLength(0);
-
-
-            // Draw stones and hints
-            for (int x = 0; x < puzzle.grid.GetLength(0); x++)
-                for (int y = 0; y < puzzle.grid.GetLength(1); y++)
-                {
-                    // Coloring squares
-                    if ((x % 2 != 0 && y % 2 == 0) || (x % 2 == 0 && y % 2 != 0))
-                        gr.FillRectangle(Brushes.AntiqueWhite, x * cellsize, y * cellsize, cellsize, cellsize);
-                    else
-                        gr.FillRectangle(Brushes.SandyBrown, x * cellsize, y * cellsize, cellsize, cellsize);
-
-                    // Drawing piece figures
-                    Piece piece = puzzle.grid[x, y];
-                    if (piece != null)
-                    {
-                        if (piece.clicked)
-                            gr.FillRectangle(Brushes.YellowGreen, x * cellsize, y * cellsize, cellsize, cellsize);
-
-                        if (clicked != null && puzzle.ValidMove(clicked, piece))
-                            gr.FillEllipse(Brushes.IndianRed, new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
-
-                        if (piece.nCaptures > 0)
-                            gr.DrawImage(figures[piece.State], new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
-                        else
-                            gr.DrawImage(figures[piece.State + 6], new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
-
-                    }
-                }
-
-            // Draw board lines
-            if (show_grid)
-            {
-                Pen pen = new Pen(Color.Gray, 1);
-                for (int x = 0; x < canvas.Width; x += cellsize)
-                    gr.DrawLine(pen, x, 0, x, canvas.Height);
-                for (int y = 0; y < canvas.Height; y += cellsize)
-                    gr.DrawLine(pen, 0, y, canvas.Width, y);
-            }
+            pea.Graphics.FillRectangle(Brushes.SaddleBrown, board.Location.X - marge_small, board.Location.Y - marge_small, board.Width + marge_small * 2, board.Height + marge_small * 2);
         }
 
         public void ChooseInput(object sender, EventArgs ea)
@@ -163,69 +86,135 @@ namespace SoloChess
             dialog.Title = "Open input configuration file...";
 
             if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                StreamReader sr = new StreamReader(dialog.FileName);
-                puzzle = new Puzzle(sr);
-                canvas.Invalidate();
-            }
+                board.NewGame(new StreamReader(dialog.FileName));
         }
 
-        public void GenerateConfig(object sender, EventArgs ea)
+        public void NewGame(object sender, EventArgs ea){ board.NewGame((int)nup.Value); }
+
+        public void RestartGame(object sender, EventArgs ea){ board.Restart(); }
+    }
+
+
+    public class ChessBoard : Panel
+    {
+        private Puzzle game;
+        Piece clicked;
+        Image[] figures;
+
+        private Brush color_black, color_white, color_selected, color_attacked;
+
+        public ChessBoard(Puzzle game)
         {
-            Instance i = gen.GenValidInstance((int)nup.Value);
-            puzzle = new Puzzle(i);
+            Size = new Size(481, 481);
+            BackColor = Color.SaddleBrown;
+            ResizeRedraw = true;
+            DoubleBuffered = true;
+            color_white = Brushes.AntiqueWhite;
+            color_black = Brushes.SandyBrown;
+            color_selected = Brushes.YellowGreen;
+            color_attacked = Brushes.IndianRed;
 
-            canvas.Invalidate();
+            figures = GetFigures();
+
+            this.game = game;
+
+            // Events
+            this.Paint += DrawBoard;
+            this.MouseClick += ClickBoard;
         }
 
-        public void RestartPuzzle(object sender, EventArgs ea)
+        private void DrawBoard(object sender, PaintEventArgs pea)
         {
-            clicked = null;
-            puzzle.Restart();
-            canvas.Invalidate();
-        }
+            Graphics gr = pea.Graphics;
+            int cellsize = this.Width / game.grid.GetLength(0);
 
+            for (int x = 0; x < game.grid.GetLength(0); x++)
+                for (int y = 0; y < game.grid.GetLength(1); y++)
+                {
+                    // Coloring squares
+                    if ((x % 2 != 0 && y % 2 == 0) || (x % 2 == 0 && y % 2 != 0))
+                        gr.FillRectangle(color_white, x * cellsize, y * cellsize, cellsize, cellsize);
+                    else
+                        gr.FillRectangle(color_black, x * cellsize, y * cellsize, cellsize, cellsize);
+
+                    // Drawing piece figures
+                    Piece piece = game.grid[x, y];
+                    if (piece != null)
+                    {
+                        if (piece.clicked)
+                            gr.FillRectangle(color_selected, x * cellsize, y * cellsize, cellsize, cellsize);
+
+                        if (clicked != null && game.ValidMove(clicked, piece))
+                            gr.FillRectangle(color_attacked, new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
+
+                        if (piece.nCaptures > 0)
+                            gr.DrawImage(figures[piece.State], new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
+                        else
+                            gr.DrawImage(figures[piece.State + 6], new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
+                    }
+                }
+        }
 
         private void ClickBoard(object sender, MouseEventArgs mea)
         {
-            // Get corresponding board cell from mouseclick coordinates
-            int Ycell = (int)(mea.Y / (canvas.Width / puzzle.grid.GetLength(0)));
-            int Xcell = (int)(mea.X / (canvas.Height / puzzle.grid.GetLength(1)));
-
-            // To prevent index out of bound error when clicking on the east or south edge of the board
-            if (Xcell >= puzzle.grid.GetLength(0))
-                Xcell -= 1;
-            if (Ycell >= puzzle.grid.GetLength(1))
-                Ycell -= 1;
-
-            Piece piece = puzzle.grid[Xcell, Ycell];
+            // Handle movement highlighting
+            Piece piece = GetClickedPiece(mea.X, mea.Y);
             if (piece != null)
             {
-                if (piece.clicked)
-                {
-                    piece.clicked = false;
-                    clicked = null;
-                }
+                if (piece.clicked)                    
+                    this.ResetClicked();
                 else if (clicked != null)
                 {
-                    if (puzzle.ValidMove(clicked, piece))
+                    // Perform move if valid
+                    if (game.ValidMove(clicked, piece))
                     {
-                        puzzle.MoveVertex(clicked, piece);
-                        clicked.clicked = false;
-                        clicked = null;
+                        game.MoveVertex(clicked, piece);
+                        this.ResetClicked();
                     }
-                }
+                }   
                 else
-                {
-                    piece.clicked = true;
-                    clicked = piece;
-                }
-            }
-            canvas.Invalidate();
+                    SetClicked(piece);
+            } 
+            this.Invalidate();
+        }
+        private Piece GetClickedPiece(int click_x, int click_y)
+        {
+            // Get corresponding grid cell from pixel coordinates
+            int Xcell = (int)(click_x / (this.Height / game.grid.GetLength(1)));
+            int Ycell = (int)(click_y / (this.Width / game.grid.GetLength(0)));
+
+            // Prevents index out of bounds error when clicking on outer edge
+            if (Xcell >= game.grid.GetLength(0))
+                Xcell -= 1;
+            if (Ycell >= game.grid.GetLength(1))
+                Ycell -= 1;
+
+            return game.grid[Xcell, Ycell];
         }
 
-        static Image[] GetFigures()
+        public void Restart() 
+        { 
+            clicked = null; 
+            game.Restart(); 
+            this.Invalidate(); 
+        }
+        public void NewGame(int difficulty) 
+        { 
+            game = new Puzzle(Generator.GenValidInstance(difficulty)); 
+            this.Invalidate(); 
+        }
+        public void NewGame(StreamReader sr) 
+        { 
+            game = new Puzzle(new Instance(sr)); 
+            this.Invalidate(); 
+        }
+
+        private void SetClicked(Piece p) { p.clicked = true; clicked = p; }     // Highlight clicked piece
+        private void ResetClicked(){ clicked.clicked = false; clicked = null; } // Unhighlight
+
+        private static Image[] GetFigures()
         {
+            // Gets the figure images
             Image[] figures = new Image[13];
             figures[1] = Properties.Resources.kingW;
             figures[2] = Properties.Resources.queenW;
@@ -240,16 +229,6 @@ namespace SoloChess
             figures[11] = Properties.Resources.knightB;
             figures[12] = Properties.Resources.pawnB;
             return figures;
-        }
-
-    }
-
-    public class Canvas : Panel
-    {
-        public Canvas()
-        {
-            ResizeRedraw = true;
-            DoubleBuffered = true;
         }
     }
 }

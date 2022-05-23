@@ -49,7 +49,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BlockChecker.cs" />
     <Compile Include="ChessForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -118,6 +117,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\wood.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="inputs\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

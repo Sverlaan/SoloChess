@@ -7,33 +7,30 @@ using System.IO;
 
 namespace SoloChess
 {
-    internal class Generator
+    internal static class Generator
     {
-        Random rdm;
+        static Random rdm = new Random();
 
-        public Generator()
+        public static void WriteInputs(int n, int difficulty)
         {
-            rdm = new Random();
-        }
+            string path = System.Environment.CurrentDirectory;
+            string path2 = path.Substring(0, path.LastIndexOf("bin")) + "inputs";
 
-        public void WriteInputs(int n, int difficulty)
-        {
             for (int i = 0; i < n; i++)
             {
-                Instance instance = GenValidInstance(difficulty);
-                string filename = $"\\Users\\sverl\\OneDrive - Universiteit Utrecht\\3.4 Eindwerkstuk\\Code\\Input\\input{i}.txt";
-                WriteToFile(instance.ToString(), filename);
+                string filename = path2 + $"\\input{i}.txt";
+                WriteToFile(GenValidInstance(difficulty).ToString(), filename);
             }
         }
 
-        public void WriteToFile(string text, string filename)
+        public static void WriteToFile(string text, string filename)
         {
             StreamWriter writer = new StreamWriter(filename);
             writer.Write(text);
             writer.Close();
         }
 
-        public Instance GenValidInstance(int rounds)
+        public static Instance GenValidInstance(int rounds)
         {
             bool found = false;
             while (!found)
@@ -59,7 +56,6 @@ namespace SoloChess
                 {
                     List<(Piece, List<(int, int)>)> all_options = new List<(Piece, List<(int, int)>)>();
 
-                    Console.Write(nonfixed.Count);
                     for (int i = 0; i < nonfixed.Count; i++)
                     {
                         Piece p = nonfixed[i];
@@ -132,7 +128,8 @@ namespace SoloChess
                 if (found)
                 {
                     Instance instance = new Instance();
-                    foreach (Piece p in pieces)
+                    IOrderedEnumerable<Piece> sorted_pieces = pieces.OrderBy(p => p.X).ThenBy(p => p.Y);
+                    foreach (Piece p in sorted_pieces)
                         instance.Add(p.State, p.X, p.Y, 2);
                     return instance;
                 }
@@ -141,7 +138,7 @@ namespace SoloChess
             return null;
         }
 
-        public List<(int, int)> GetSlidingOptions(Piece p1, Piece[,] grid, List<(int, int)> possible_directions)
+        public static List<(int, int)> GetSlidingOptions(Piece p1, Piece[,] grid, List<(int, int)> possible_directions)
         {
             List<(int, int)> options = new List<(int, int)>();
 
@@ -160,7 +157,7 @@ namespace SoloChess
             return options;
         }
 
-        public string GenRandomInstance()
+        public static string GenRandomInstance()
         {
             int nPieces = rdm.Next(2, 10);
             int width = 8;
