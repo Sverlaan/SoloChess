@@ -178,7 +178,24 @@ namespace SoloChess
             }
         }
 
-        
+        public Piece ParseState(int p, int x, int y, int c)
+        {
+            switch(p)
+            {
+                case 1:
+                    return new King(p, x, y, c);
+                case 2:
+                    return new Queen(p, x, y, c);
+                case 3:
+                    return new Rook(p, x, y, c);
+                case 4:
+                    return new Bishop(p, x, y, c);
+                case 5:
+                    return new Knight(p, x, y, c);
+                default:
+                    return new Pawn(p, x, y, c);
+            }
+        }
 
         
 
@@ -187,7 +204,7 @@ namespace SoloChess
         {
             grid[v.X, v.Y] = null;
             w.State = v.State;
-            w.nCaptures = v.nCaptures - 1;
+            w.nCapturesLeft = v.nCapturesLeft - 1;
 
             if (v.vert.prev != null)
             {
@@ -234,7 +251,7 @@ namespace SoloChess
         {
             if (p1 == p2)
                 return false;
-            if (p1.nCaptures <= 0)
+            if (p1.nCapturesLeft <= 0)
                 return false;
 
             switch (p1.State)
@@ -293,28 +310,22 @@ namespace SoloChess
     }
 
 
-    public class Piece
-    {
-        public int State;
-        public int X, Y;
-        public bool clicked;
-        public int nCaptures;
+    
 
-        public Node hor, vert, dig1, dig2;
 
-        public Piece(int state, int x, int y, int c)
-        {
-            this.State = state;
-            this.X = x;
-            this.Y = y;
-            nCaptures = c;
 
-            vert = new Node(this, null, null);
-            hor = new Node(this, null, null);
-            dig1 = new Node(this, null, null);
-            dig2 = new Node(this, null, null);
-        }
-    }
+
+
+
+
+
+
+
+
+
+
+
+
 
     public class Node
     {

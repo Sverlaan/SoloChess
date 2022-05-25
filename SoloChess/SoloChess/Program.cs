@@ -18,7 +18,7 @@ namespace SoloChess
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            //Generator.WriteInputs(10, 12);
+            //Generator.WriteInputs(n: 10, start: 2, end: 8, increment: 2);
             Application.Run(new ChessForm());
         }
     }

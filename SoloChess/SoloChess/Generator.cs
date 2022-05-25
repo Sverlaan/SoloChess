@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 
 namespace SoloChess
@@ -11,16 +10,24 @@ namespace SoloChess
     {
         static Random rdm = new Random();
 
-        public static void WriteInputs(int n, int difficulty)
+        public static void WriteInputs(int n, int start, int end, int increment = 1)
         {
             string path = System.Environment.CurrentDirectory;
             string path2 = path.Substring(0, path.LastIndexOf("bin")) + "inputs";
 
-            for (int i = 0; i < n; i++)
+            if (start < 2 || end > 64 || start > end)
+                throw new Exception();
+
+            int diff = start;
+            while(diff <= end)
             {
-                string filename = path2 + $"\\input{i}.txt";
-                WriteToFile(GenValidInstance(difficulty).ToString(), filename);
-            }
+                for (int i = 0; i < n; i++)
+                {
+                    string filename = path2 + $"\\diff{diff}_input{i}_.txt";
+                    WriteToFile(GenValidInstance(diff).ToString(), filename);
+                }
+                diff += increment;
+            }   
         }
 
         public static void WriteToFile(string text, string filename)
@@ -37,11 +44,8 @@ namespace SoloChess
             {
                 found = true;
 
-
-                Console.WriteLine();
                 Piece[,] grid = new Piece[8, 8];
                 Piece[] pieces = new Piece[rounds];
-
 
                 int startX = rdm.Next(0, 8);
                 int startY = rdm.Next(0, 8);
@@ -98,7 +102,6 @@ namespace SoloChess
                             all_options.Add((p, options_for_piece));
                     }
 
-                    // handle !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     if (all_options.Count == 0)
                     {
                         found = false;
@@ -108,14 +111,12 @@ namespace SoloChess
 
                     (Piece p1, List<(int, int)> options) = all_options[rdm.Next(0, all_options.Count)];
                     (int newX, int newY) = options[rdm.Next(0, options.Count)];
-                    p1.nCaptures--; ////
 
-                    if (p1.nCaptures <= 0) ////
-                    {
+                    p1.nCapturesLeft--;
+                    if (p1.nCapturesLeft <= 0)
                         nonfixed.Remove(p1);
-                    }
 
-                    Piece p2 = new Piece(rdm.Next(2, 7), p1.X, p1.Y, 2); ////
+                    Piece p2 = new Piece(rdm.Next(2, 7), p1.X, p1.Y, 2);
                     pieces[r] = p2;
                     grid[p2.X, p2.Y] = p2;
                     nonfixed.Add(p2);
