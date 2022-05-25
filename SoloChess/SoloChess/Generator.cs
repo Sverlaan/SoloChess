@@ -50,7 +50,7 @@ namespace SoloChess
                 int startX = rdm.Next(0, 8);
                 int startY = rdm.Next(0, 8);
 
-                Piece piece = new Piece(1, startX, startY, 2);  // always exactly one king /////
+                Piece piece = new King(1, startX, startY, 2);  // always exactly one king /////
                 grid[startX, startY] = piece;
                 pieces[0] = piece;
                 List<Piece> nonfixed = new List<Piece>();
@@ -63,40 +63,7 @@ namespace SoloChess
                     for (int i = 0; i < nonfixed.Count; i++)
                     {
                         Piece p = nonfixed[i];
-
-                        // Find new place for p1 based on type rules
-                        List<(int, int)> options_for_piece = new List<(int, int)>();
-                        List<(int, int)> temp_options;
-                        switch (p.State)
-                        {
-                            case 1: // king
-                                temp_options = new List<(int, int)> { (p.X - 1, p.Y - 1), (p.X - 1, p.Y), (p.X - 1, p.Y + 1), (p.X, p.Y - 1), (p.X, p.Y + 1), (p.X + 1, p.Y - 1), (p.X + 1, p.Y), (p.X + 1, p.Y + 1) };
-                                foreach ((int x, int y) in temp_options)
-                                    if (x >= 0 && x < 8 && y >= 0 && y < 8 && grid[x, y] == null)
-                                        options_for_piece.Add((x, y));
-                                break;
-                            case 2: // Queen
-                                options_for_piece = GetSlidingOptions(p, grid, new List<(int, int)> { (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1) });
-                                break;
-                            case 3: // rook
-                                options_for_piece = GetSlidingOptions(p, grid, new List<(int, int)> { (-1, 0), (0, -1), (0, 1), (1, 0) });
-                                break;
-                            case 4: // bishop
-                                options_for_piece = GetSlidingOptions(p, grid, new List<(int, int)> { (-1, -1), (-1, 1), (1, -1), (1, 1) });
-                                break;
-                            case 5: // knight
-                                temp_options = new List<(int, int)> { (p.X + 2, p.Y - 1), (p.X + 2, p.Y + 1), (p.X - 2, p.Y - 1), (p.X - 2, p.Y + 1), (p.X - 1, p.Y + 2), (p.X + 1, p.Y + 2), (p.X - 1, p.Y - 2), (p.X + 1, p.Y - 2) };
-                                foreach ((int x, int y) in temp_options)
-                                    if (x >= 0 && x < 8 && y >= 0 && y < 8 && grid[x, y] == null)
-                                        options_for_piece.Add((x, y));
-                                break;
-                            case 6: // pawn
-                                temp_options = new List<(int, int)> { (p.X - 1, p.Y + 1), (p.X + 1, p.Y + 1) };
-                                foreach ((int x, int y) in temp_options)
-                                    if (x >= 0 && x < 8 && y >= 0 && y < 8 && grid[x, y] == null)
-                                        options_for_piece.Add((x, y));
-                                break;
-                        }
+                        List<(int, int)>  options_for_piece = p.GetOptions(grid);
 
                         if (options_for_piece.Count > 0)
                             all_options.Add((p, options_for_piece));
@@ -116,7 +83,7 @@ namespace SoloChess
                     if (p1.nCapturesLeft <= 0)
                         nonfixed.Remove(p1);
 
-                    Piece p2 = new Piece(rdm.Next(2, 7), p1.X, p1.Y, 2);
+                    Piece p2 = ParseState(rdm.Next(2, 7), p1.X, p1.Y, 2);
                     pieces[r] = p2;
                     grid[p2.X, p2.Y] = p2;
                     nonfixed.Add(p2);
@@ -137,6 +104,25 @@ namespace SoloChess
             }
 
             return null;
+        }
+
+        public static Piece ParseState(int p, int x, int y, int c)
+        {
+            switch (p)
+            {
+                case 1:
+                    return new King(p, x, y, c);
+                case 2:
+                    return new Queen(p, x, y, c);
+                case 3:
+                    return new Rook(p, x, y, c);
+                case 4:
+                    return new Bishop(p, x, y, c);
+                case 5:
+                    return new Knight(p, x, y, c);
+                default:
+                    return new Pawn(p, x, y, c);
+            }
         }
 
         public static List<(int, int)> GetSlidingOptions(Piece p1, Piece[,] grid, List<(int, int)> possible_directions)

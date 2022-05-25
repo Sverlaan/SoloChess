@@ -259,14 +259,4 @@ namespace SoloChess
     }
 
 
-    
-
-
-
-
-
-
-
-
-
 }

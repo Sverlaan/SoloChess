@@ -170,7 +170,7 @@ namespace SoloChess
             int i = 0;
             foreach ((int p, int x, int y, int c) in instance.p_list)
             {
-                Piece piece = new Piece(p, x, y, c);
+                Piece piece = ParseState(p, x, y, c);
 
                 grid[x, y] = piece;
                 pieces[i] = piece;
