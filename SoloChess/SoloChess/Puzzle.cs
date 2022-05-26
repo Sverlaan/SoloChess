@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace SoloChess
 {
@@ -22,142 +23,47 @@ namespace SoloChess
 
         public void InitNodes()
         {
-            Piece[] arr = new Piece[pieces.Length];
-            arr = (Piece[])pieces.Clone();
-
-            // horizontal
-            Array.Sort(arr, delegate (Piece x, Piece y) { return x.X.CompareTo(y.X); });
-
-            var groupedlist = arr.GroupBy<Piece, int>(p => p.X).Select(grp => grp.ToList()).ToList();
-            foreach(List<Piece> l in groupedlist)
+            void InitNodes2(List<Node> ordered)
             {
-                List<Piece> ordered = l.OrderBy<Piece, int>(p => p.Y).ToList<Piece>();
-
                 if (ordered.Count < 2)
-                    continue;
+                    return;
 
                 for (int i = 0; i < ordered.Count; i++)
                 {
-                    Piece cur = ordered[i];
+                    Node cur = ordered[i];
                     if (i == 0)
-                        cur.vert.next = ordered[i + 1].vert;
+                        cur.next = ordered[i + 1];
                     else if (i == ordered.Count - 1)
-                        cur.vert.prev = ordered[i - 1].vert;
+                        cur.prev = ordered[i - 1];
                     else
                     {
-                        cur.vert.next = ordered[i + 1].vert;
-                        cur.vert.prev = ordered[i - 1].vert;
+                        cur.next = ordered[i + 1];
+                        cur.prev = ordered[i - 1];
                     }
                 }
             }
+
+            Square[] squares2 = pieces.Select(p => p.Square).ToArray();
+            List<List<Square>> grouped_squares;
 
             // vertical
-            Piece[] arr2 = new Piece[pieces.Length];
-            arr2 = (Piece[])pieces.Clone();
+            grouped_squares = squares2.GroupBy(p => p.X).Select(grp => grp.ToList()).ToList();
+            foreach(List<Square> l in grouped_squares)
+                InitNodes2(l.OrderBy(p => p.Y).Select(n => n.bids.vert).ToList());
 
-            Array.Sort(arr2, delegate (Piece x, Piece y) { return x.Y.CompareTo(y.Y); });
+            grouped_squares = squares2.GroupBy(p => p.Y).Select(grp => grp.ToList()).ToList();
+            foreach (List<Square> l in grouped_squares)
+                InitNodes2(l.OrderBy(p => p.X).Select(n => n.bids.hor).ToList());
 
-            var groupedlist2 = arr2.GroupBy<Piece, int>(p => p.Y).Select(grp => grp.ToList()).ToList();
-            foreach (List<Piece> l in groupedlist2)
-            {
-                List<Piece> ordered = l.OrderBy<Piece, int>(p => p.X).ToList<Piece>();
+            grouped_squares = squares2.GroupBy(p => p.X + p.Y).Select(grp => grp.ToList()).ToList();
+            foreach (List<Square> l in grouped_squares)
+                InitNodes2(l.OrderBy(p => p.X - p.Y).Select(n => n.bids.dig1).ToList());
 
-                if (ordered.Count < 2)
-                    continue;
-
-                for (int i = 0; i < ordered.Count; i++)
-                {
-                    
-                    Piece cur = ordered[i];
-                    if (i == 0)
-                        cur.hor.next = ordered[i + 1].hor;
-                    else if (i == ordered.Count - 1)
-                        cur.hor.prev = ordered[i - 1].hor;
-                    else
-                    {
-                        cur.hor.next = ordered[i + 1].hor;
-                        cur.hor.prev = ordered[i - 1].hor;
-                    }
-                }
-            }
-
-            
-            // diagonal1
-            Array.Sort(arr, delegate (Piece x, Piece y) { return (x.X + x.Y).CompareTo(y.X + y.Y); });
-
-            groupedlist = arr.GroupBy<Piece, int>(p => (p.X + p.Y)).Select(grp => grp.ToList()).ToList();
-            foreach (List<Piece> l in groupedlist)
-            {
-                List<Piece> ordered = l.OrderBy<Piece, int>(p => (p.X - p.Y)).ToList<Piece>();
-
-                if (ordered.Count < 2)
-                    continue;
-
-                for (int i = 0; i < ordered.Count; i++)
-                {
-                    Piece cur = ordered[i];
-                    if (i == 0)
-                        cur.dig1.next = ordered[i + 1].dig1;
-                    else if (i == ordered.Count - 1)
-                        cur.dig1.prev = ordered[i - 1].dig1;
-                    else
-                    {
-                        cur.dig1.next = ordered[i + 1].dig1;
-                        cur.dig1.prev = ordered[i - 1].dig1;
-                    }
-                }
-            }
-
-            // diagonal2
-            Array.Sort(arr, delegate (Piece x, Piece y) { return (x.X - x.Y).CompareTo(y.X - y.Y); });
-
-            groupedlist = arr.GroupBy<Piece, int>(p => (p.X - p.Y)).Select(grp => grp.ToList()).ToList();
-            foreach (List<Piece> l in groupedlist)
-            {
-                List<Piece> ordered = l.OrderBy<Piece, int>(p => (p.X + p.Y)).ToList<Piece>();
-
-                if (ordered.Count < 2)
-                    continue;
-
-                for (int i = 0; i < ordered.Count; i++)
-                {
-                    Piece cur = ordered[i];
-                    if (i == 0)
-                        cur.dig2.next = ordered[i + 1].dig2;
-                    else if (i == ordered.Count - 1)
-                        cur.dig2.prev = ordered[i - 1].dig2;
-                    else
-                    {
-                        cur.dig2.next = ordered[i + 1].dig2;
-                        cur.dig2.prev = ordered[i - 1].dig2;
-                    }
-                }
-            }
+            grouped_squares = squares2.GroupBy(p => p.X - p.Y).Select(grp => grp.ToList()).ToList();
+            foreach (List<Square> l in grouped_squares)
+                InitNodes2(l.OrderBy(p => p.X + p.Y).Select(n => n.bids.dig2).ToList());
         }
-
-        public void InitNodesPointers(List<Piece> l)
-        {
-            List<Piece> ordered = l.OrderBy<Piece, int>(p => p.Y).ToList<Piece>();
-
-            if (ordered.Count < 2)
-                return;
-
-            for(int i = 0; i < ordered.Count; i++)
-            {
-                Piece cur = ordered[i];
-                if (i == 0)
-                    cur.vert.next = ordered[i+1].vert;
-                else if (i == ordered.Count - 1)
-                    cur.vert.prev = ordered[i - 1].vert;
-                else
-                {
-                    cur.vert.next = ordered[i + 1].vert;
-                    cur.vert.prev = ordered[i - 1].vert;
-                }
-
-            }
-        }
-
+         
         
         
 
@@ -170,7 +76,7 @@ namespace SoloChess
             int i = 0;
             foreach ((int p, int x, int y, int c) in instance.p_list)
             {
-                Piece piece = ParseState(p, x, y, c);
+                Piece piece = ParseState(p, new Square(x,y), c);
 
                 grid[x, y] = piece;
                 pieces[i] = piece;
@@ -178,128 +84,46 @@ namespace SoloChess
             }
         }
 
-        public Piece ParseState(int p, int x, int y, int c)
+        public Piece ParseState(int p, Square s, int c)
         {
             switch(p)
             {
                 case 1:
-                    return new King(p, x, y, c);
+                    return new King(p, s, c);
                 case 2:
-                    return new Queen(p, x, y, c);
+                    return new Queen(p, s, c);
                 case 3:
-                    return new Rook(p, x, y, c);
+                    return new Rook(p, s, c);
                 case 4:
-                    return new Bishop(p, x, y, c);
+                    return new Bishop(p, s, c);
                 case 5:
-                    return new Knight(p, x, y, c);
+                    return new Knight(p, s, c);
                 default:
-                    return new Pawn(p, x, y, c);
+                    return new Pawn(p, s, c);
             }
         }
 
-        
 
-
-        public void MoveVertex(Piece v, Piece w)
+        public void MoveVertex(Piece p, Piece q)
         {
-            grid[v.X, v.Y] = null;
-            w.State = v.State;
-            w.nCapturesLeft = v.nCapturesLeft - 1;
+            grid[p.Square.X, p.Square.Y] = null;
+            grid[q.Square.X, q.Square.Y] = p;
 
-            if (v.vert.prev != null)
-            {
-                v.vert.prev.next = v.vert.next;
-            }
-            if(v.vert.next != null)
-            {
-                v.vert.next.prev = v.vert.prev;
-            }
+            p.nCapturesLeft--;
 
-
-            if (v.hor.prev != null)
-            {
-                v.hor.prev.next = v.hor.next;
-            }
-            if (v.hor.next != null)
-            {
-                v.hor.next.prev = v.hor.prev;
-            }
-
-
-            if (v.dig2.prev != null)
-            {
-                v.dig2.prev.next = v.dig2.next;
-            }
-            if (v.dig2.next != null)
-            {
-                v.dig2.next.prev = v.dig2.prev;
-            }
-
-
-            if (v.dig1.prev != null)
-            {
-                v.dig1.prev.next = v.dig1.next;
-            }
-            if (v.dig1.next != null)
-            {
-                v.dig1.next.prev = v.dig1.prev;
-            }
-
+            p.Square.bids.Remove();
+            p.Square = q.Square;
         }
 
-        public bool ValidMove(Piece p1, Piece p2)
+        public bool ValidMove(Piece p, Piece q)
         {
-            if (p1 == p2)
+            /*
+            if (p == q)
                 return false;
-            if (p1.nCapturesLeft <= 0)
+            if (p.nCapturesLeft <= 0)
                 return false;
-
-            switch (p1.State)
-            {
-                case 1: // king
-                    if (Math.Abs(p1.X - p2.X) <= 1 && Math.Abs(p1.Y - p2.Y) <= 1)
-                        return true;
-                    break;
-                case 2: // Queen
-                    if (p1.X == p2.X && (p1.vert.next == p2.vert || p1.vert.prev == p2.vert))
-                        return true;
-                    else if (p1.Y == p2.Y && (p1.hor.next == p2.hor || p1.hor.prev == p2.hor))
-                        return true;
-                    else if (p1.X - p1.Y == p2.X - p2.Y && (p1.dig2.next == p2.dig2 || p1.dig2.prev == p2.dig2))
-                        return true;
-                    else if (p1.X + p1.Y == p2.X + p2.Y && (p1.dig1.next == p2.dig1 || p1.dig1.prev == p2.dig1))
-                        return true;
-                    break;
-                case 3: // rook
-                    if (p1.X == p2.X && (p1.vert.next == p2.vert || p1.vert.prev == p2.vert))
-                        return true;
-                    else if (p1.Y == p2.Y && (p1.hor.next == p2.hor || p1.hor.prev == p2.hor))
-                        return true;
-                    break;
-                case 4: // bishop
-                    if (p1.X - p1.Y == p2.X - p2.Y && (p1.dig2.next == p2.dig2 || p1.dig2.prev == p2.dig2))
-                        return true;
-                    else if (p1.X + p1.Y == p2.X + p2.Y && (p1.dig1.next == p2.dig1 || p1.dig1.prev == p2.dig1))
-                        return true;
-                    break;
-                case 5: // knight
-                    if (p2.Y == p1.Y - 2 && (p2.X == p1.X - 1 || p2.X == p1.X + 1))
-                        return true;
-                    else if (p2.Y == p1.Y + 2 && (p2.X == p1.X - 1 || p2.X == p1.X + 1))
-                        return true;
-                    else if (p2.X == p1.X - 2 && (p2.Y == p1.Y - 1 || p2.Y == p1.Y + 1))
-                        return true;
-                    else if (p2.X == p1.X + 2 && (p2.Y == p1.Y - 1 || p2.Y == p1.Y + 1))
-                        return true;
-                    break;
-                case 6: // pawn
-                    if (p2.X == p1.X - 1 && p2.Y == p1.Y - 1)
-                        return true;
-                    else if (p2.X == p1.X + 1 && p2.Y == p1.Y - 1)
-                        return true;
-                    break;
-            }
-            return false;
+            */
+            return p.ValidCapture(q);
         }
 
         public void Restart()
@@ -311,41 +135,6 @@ namespace SoloChess
 
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public class Node
-    {
-        public Piece piece;
-        public Node next, prev;
-
-        public Node(Piece piece, Node next, Node prev)
-        {
-            this.piece = piece;
-            this.next = next;
-            this.prev = prev;
-        }
-
-        public void AddBack()
-        {
-            this.prev.next = this;
-            this.next.prev = this;
-        }
-    }
-
     public class Instance
     {
         public int n;

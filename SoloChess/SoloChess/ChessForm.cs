@@ -25,17 +25,13 @@ namespace SoloChess
             this.Size = new Size(558, 650);
             this.Text = "Solo Chess";
             //this.Icon = Properties.Resources.logo;
-            //this.BackgroundImageLayout = ImageLayout.Stretch;
-            //this.BackgroundImage = Properties.Resources.wood;
             this.BackColor = Color.FromArgb(88, 85, 80);
             this.DoubleBuffered = true;
 
             // Canvas for drawing the board
             board = new ChessBoard(new Puzzle(Generator.GenValidInstance(12)));
             board.Location = new Point(marge_big + marge_small, marge_big + marge_small);
-            //canvas = new Canvas { Size = new Size(481, 481), Location = new Point(marge_big + marge_small, marge_big + marge_small), BackColor = Color.SaddleBrown };
-
-
+            
             input_button = new MyButton("Input", board.Left, board.Bottom + marge_small + marge_big);
             restart_button = new MyButton("Restart", input_button.Right + marge_small, input_button.Top);
             generate_button = new MyButton("Generate", restart_button.Right + marge_small, restart_button.Top);
@@ -93,7 +89,6 @@ namespace SoloChess
     {
         private Puzzle game;
         Piece clicked;
-        Image[] figures;
 
         private Brush color_black, color_white, color_selected, color_attacked;
 
@@ -107,8 +102,6 @@ namespace SoloChess
             color_black = new SolidBrush(Color.FromArgb(181, 136, 99));// Brushes.SandyBrown;
             color_selected = Brushes.YellowGreen;
             color_attacked = Brushes.IndianRed;
-
-            figures = GetFigures();
 
             this.game = game;
         }
@@ -131,16 +124,16 @@ namespace SoloChess
                     Piece piece = game.grid[x, y];
                     if (piece != null)
                     {
-                        if (piece.clicked)
+                        if (piece == clicked)
                             gr.FillRectangle(color_selected, x * cellsize, y * cellsize, cellsize, cellsize);
 
                         if (clicked != null && game.ValidMove(clicked, piece))
                             gr.FillRectangle(color_attacked, new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
 
                         if (piece.nCapturesLeft > 0)
-                            gr.DrawImage(figures[piece.State], new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
+                            gr.DrawImage(piece.FigureW, new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
                         else
-                            gr.DrawImage(figures[piece.State + 6], new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
+                            gr.DrawImage(piece.FigureB, new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
                     }
                 }
 
@@ -169,7 +162,7 @@ namespace SoloChess
             Piece piece = GetClickedPiece(mea.X, mea.Y);
             if (piece != null)
             {
-                if (piece.clicked)                    
+                if (piece == clicked)                    
                     this.ResetClicked();
                 else if (clicked != null)
                 {
@@ -220,27 +213,8 @@ namespace SoloChess
             this.Invalidate(); 
         }
 
-        private void SetClicked(Piece p) { p.clicked = true; clicked = p; }     // Highlight clicked piece
-        private void ResetClicked(){ clicked.clicked = false; clicked = null; } // Unhighlight
-
-        private static Image[] GetFigures()
-        {
-            // Gets the figure images
-            Image[] figures = new Image[13];
-            figures[1] = Properties.Resources.kingW;
-            figures[2] = Properties.Resources.queenW;
-            figures[3] = Properties.Resources.rookW;
-            figures[4] = Properties.Resources.bishopW;
-            figures[5] = Properties.Resources.knightW;
-            figures[6] = Properties.Resources.pawnW;
-            figures[7] = Properties.Resources.kingB;
-            figures[8] = Properties.Resources.queenB;
-            figures[9] = Properties.Resources.rookB;
-            figures[10] = Properties.Resources.bishopB;
-            figures[11] = Properties.Resources.knightB;
-            figures[12] = Properties.Resources.pawnB;
-            return figures;
-        }
+        private void SetClicked(Piece p) { clicked = p; }     // Highlight clicked piece
+        private void ResetClicked(){ clicked = null; } // Unhighlight
     }
 
     class MyButton : Button
@@ -257,6 +231,16 @@ namespace SoloChess
             this.Text = text;
         }
     }
+
+
+    
+
+
+
+
+
+
+
 
 
 }

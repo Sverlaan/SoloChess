@@ -49,8 +49,9 @@ namespace SoloChess
 
                 int startX = rdm.Next(0, 8);
                 int startY = rdm.Next(0, 8);
+                Square square = new Square(startX, startY);
 
-                Piece piece = new King(1, startX, startY, 2);  // always exactly one king /////
+                Piece piece = new King(1, square, 2);  // always exactly one king /////
                 grid[startX, startY] = piece;
                 pieces[0] = piece;
                 List<Piece> nonfixed = new List<Piece>();
@@ -78,27 +79,27 @@ namespace SoloChess
 
                     (Piece p1, List<(int, int)> options) = all_options[rdm.Next(0, all_options.Count)];
                     (int newX, int newY) = options[rdm.Next(0, options.Count)];
+                    Square new_square = new Square(newX, newY);
 
                     p1.nCapturesLeft--;
                     if (p1.nCapturesLeft <= 0)
                         nonfixed.Remove(p1);
 
-                    Piece p2 = ParseState(rdm.Next(2, 7), p1.X, p1.Y, 2);
+                    Piece p2 = ParseState(rdm.Next(2, 7), p1.Square, 2);
                     pieces[r] = p2;
-                    grid[p2.X, p2.Y] = p2;
+                    grid[p2.Square.X, p2.Square.Y] = p2;
                     nonfixed.Add(p2);
 
-                    p1.X = newX;
-                    p1.Y = newY;
+                    p1.Square = new_square;
                     grid[newX, newY] = p1;
                 }
 
                 if (found)
                 {
                     Instance instance = new Instance();
-                    IOrderedEnumerable<Piece> sorted_pieces = pieces.OrderBy(p => p.X).ThenBy(p => p.Y);
+                    IOrderedEnumerable<Piece> sorted_pieces = pieces.OrderBy(p => p.Square.X).ThenBy(p => p.Square.Y);
                     foreach (Piece p in sorted_pieces)
-                        instance.Add(p.State, p.X, p.Y, 2);
+                        instance.Add(p.State, p.Square.X, p.Square.Y, 2);
                     return instance;
                 }
             }
@@ -106,22 +107,22 @@ namespace SoloChess
             return null;
         }
 
-        public static Piece ParseState(int p, int x, int y, int c)
+        public static Piece ParseState(int p, Square s, int c)
         {
             switch (p)
             {
                 case 1:
-                    return new King(p, x, y, c);
+                    return new King(p, s, c);
                 case 2:
-                    return new Queen(p, x, y, c);
+                    return new Queen(p, s, c);
                 case 3:
-                    return new Rook(p, x, y, c);
+                    return new Rook(p, s, c);
                 case 4:
-                    return new Bishop(p, x, y, c);
+                    return new Bishop(p, s, c);
                 case 5:
-                    return new Knight(p, x, y, c);
+                    return new Knight(p, s, c);
                 default:
-                    return new Pawn(p, x, y, c);
+                    return new Pawn(p, s, c);
             }
         }
 
@@ -131,8 +132,8 @@ namespace SoloChess
 
             foreach ((int dx, int dy) in possible_directions)
             {
-                int x = p1.X + dx;
-                int y = p1.Y + dy;
+                int x = p1.Square.X + dx;
+                int y = p1.Square.Y + dy;
 
                 while (x >= 0 && x < 8 && y >= 0 & y < 8 && grid[x, y] == null)
                 {

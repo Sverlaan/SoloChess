@@ -9,28 +9,23 @@ namespace SoloChess
 {
     public abstract class Piece
     {
-        public int State;
-        public int X, Y;
-        public bool clicked;
-        public int nCapturesLeft;
+        public int State { get; set; }
+        public Square Square {get; set;}
+        public int nCapturesLeft { get; set; }
         public abstract Image FigureW { get; }
         public abstract Image FigureB { get; }
 
-        public Node hor, vert, dig1, dig2;
 
-        public Piece(int state, int x, int y, int c)
+        public Piece(int state, Square s, int c)
         {
             this.State = state;
-            this.X = x;
-            this.Y = y;
+            this.Square = s;
             nCapturesLeft = c;
-
-            vert = new Node(this, null, null);
-            hor = new Node(this, null, null);
-            dig1 = new Node(this, null, null);
-            dig2 = new Node(this, null, null);
         }
 
+
+        public abstract bool ValidCapture(Piece p);
+        public abstract List<(int, int)> CalcList();
 
         public virtual List<(int, int)> GetOptions(Piece[,] grid)
         {
@@ -50,58 +45,101 @@ namespace SoloChess
                 return true;
             return false;
         }
-
-        public abstract List<(int, int)> CalcList();
-
     }
 
 
 
     public class King : Piece
     {
-        public override Image FigureW { get => Properties.Resources.kingW; }
-        public override Image FigureB { get => Properties.Resources.kingB; }
+        public King(int state, Square s, int c) : base(state, s, c) { }
 
-        public King(int state, int x, int y, int c) : base(state, x, y, c) { }
+        public override bool ValidCapture(Piece p)
+        {
+            if (this == p || this.nCapturesLeft <= 0)
+                return false;
+
+            return Math.Abs(this.Square.X - p.Square.X) <= 1 && Math.Abs(this.Square.Y - p.Square.Y) <= 1;
+        }
 
         public override List<(int, int)> CalcList()
         {
-            return new List<(int, int)> { (this.X - 1, this.Y - 1), (this.X - 1, this.Y), (this.X - 1, this.Y + 1), (this.X, this.Y - 1), (this.X, this.Y + 1), (this.X + 1, this.Y - 1), (this.X + 1, this.Y), (this.X + 1, this.Y + 1) };
+            return new List<(int, int)> { (this.Square.X - 1, this.Square.Y - 1), (this.Square.X - 1, this.Square.Y), (this.Square.X - 1, this.Square.Y + 1), (this.Square.X, this.Square.Y - 1), (this.Square.X, this.Square.Y + 1), (this.Square.X + 1, this.Square.Y - 1), (this.Square.X + 1, this.Square.Y), (this.Square.X + 1, this.Square.Y + 1) };
         }
 
 
+        public override Image FigureW { get => Properties.Resources.kingW; }
+        public override Image FigureB { get => Properties.Resources.kingB; }
     }
 
     public class Knight : Piece
     {
-        public override Image FigureW { get => Properties.Resources.knightW; }
-        public override Image FigureB { get => Properties.Resources.knightB; }
-        public Knight(int state, int x, int y, int c) : base(state, x, y, c) { }
+        public Knight(int state, Square s, int c) : base(state, s, c) { }
+
+        public override bool ValidCapture(Piece p)
+        {
+            if (this == p || this.nCapturesLeft <= 0)
+                return false;
+
+            Square s1 = this.Square;
+            Square s2 = p.Square;
+
+            if (s2.Y == s1.Y - 2 && (s2.X == s1.X - 1 || s2.X == s1.X + 1))
+                return true;
+            else if (s2.Y == s1.Y + 2 && (s2.X == s1.X - 1 || s2.X == s1.X + 1))
+                return true;
+            else if (s2.X == s1.X - 2 && (s2.Y == s1.Y - 1 || s2.Y == s1.Y + 1))
+                return true;
+            else if (s2.X == s1.X + 2 && (s2.Y == s1.Y - 1 || s2.Y == s1.Y + 1))
+                return true;
+
+            return false;
+        }
 
         public override List<(int, int)> CalcList()
         {
-            return new List<(int, int)> { (this.X + 2, this.Y - 1), (this.X + 2, this.Y + 1), (this.X - 2, this.Y - 1), (this.X - 2, this.Y + 1), (this.X - 1, this.Y + 2), (this.X + 1, this.Y + 2), (this.X - 1, this.Y - 2), (this.X + 1, this.Y - 2) };
+            return new List<(int, int)> { (this.Square.X + 2, this.Square.Y - 1), (this.Square.X + 2, this.Square.Y + 1), (this.Square.X - 2, this.Square.Y - 1), (this.Square.X - 2, this.Square.Y + 1), (this.Square.X - 1, this.Square.Y + 2), (this.Square.X + 1, this.Square.Y + 2), (this.Square.X - 1, this.Square.Y - 2), (this.Square.X + 1, this.Square.Y - 2) };
         }
+
+        public override Image FigureW { get => Properties.Resources.knightW; }
+        public override Image FigureB { get => Properties.Resources.knightB; }
     }
 
 
     public class Pawn : Piece
     {
-        public override Image FigureW { get => Properties.Resources.pawnW; }
-        public override Image FigureB { get => Properties.Resources.pawnB; }
-        public Pawn(int state, int x, int y, int c) : base(state, x, y, c) { }
+        public Pawn(int state, Square s, int c) : base(state, s, c) { }
+
+        public override bool ValidCapture(Piece p)
+        {
+            if (this == p || this.nCapturesLeft <= 0)
+                return false;
+
+            Square s1 = this.Square;
+            Square s2 = p.Square;
+
+            if (s2.X == s1.X - 1 && s2.Y == s1.Y - 1)
+                return true;
+            else if (s2.X == s1.X + 1 && s2.Y == s1.Y - 1)
+                return true;
+
+            return false;
+        }
+
 
         public override List<(int, int)> CalcList()
         {
-            return new List<(int, int)> { (this.X - 1, this.Y + 1), (this.X + 1, this.Y + 1) };
+            return new List<(int, int)> { (this.Square.X - 1, this.Square.Y + 1), (this.Square.X + 1, this.Square.Y + 1) };
         }
+
+        public override Image FigureW { get => Properties.Resources.pawnW; }
+        public override Image FigureB { get => Properties.Resources.pawnB; }
     }
 
 
 
     public abstract class SlidingPiece : Piece
     {
-        public SlidingPiece(int p, int x, int y, int c) : base(p, x, y, c) { }
+        public SlidingPiece(int state, Square s, int c) : base(state, s, c) { }
 
         public override List<(int, int)> GetOptions(Piece[,] grid)
         {
@@ -110,8 +148,8 @@ namespace SoloChess
 
             foreach ((int dx, int dy) in possible_directions)
             {
-                int x = this.X + dx;
-                int y = this.Y + dy;
+                int x = this.Square.X + dx;
+                int y = this.Square.Y + dy;
 
                 while (ValidOption(x, y, grid))
                 {
@@ -127,42 +165,78 @@ namespace SoloChess
 
     public class Queen : SlidingPiece
     {
-        public override Image FigureW { get => Properties.Resources.queenW; }
-        public override Image FigureB { get => Properties.Resources.queenB; }
-        public Queen(int state, int x, int y, int c) : base(state, x, y, c) { }
+        public Queen(int state, Square s, int c) : base(state, s, c) { }
+
+        public override bool ValidCapture(Piece p)
+        {
+            if (this == p || this.nCapturesLeft <= 0)
+                return false;
+
+            Square s1 = this.Square;
+            Square s2 = p.Square;
+
+            return s1.AlignVertical(s2) || s1.AlignHorizontal(s2) || s1.AlignDiagonal1(s2) || s1.AlignDiagonal2(s2);
+        }
+
 
         public override List<(int, int)> CalcList()
         {
             return new List<(int, int)> { (-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1) };
         }
+
+        public override Image FigureW { get => Properties.Resources.queenW; }
+        public override Image FigureB { get => Properties.Resources.queenB; }
     }
 
 
     public class Rook : SlidingPiece
     {
-        public override Image FigureW { get => Properties.Resources.rookW; }
-        public override Image FigureB { get => Properties.Resources.rookB; }
-        public Rook(int state, int x, int y, int c) : base(state, x, y, c) { }
+        public Rook(int state, Square s, int c) : base(state, s, c) { }
+
+        public override bool ValidCapture(Piece p)
+        {
+            if (this == p || this.nCapturesLeft <= 0)
+                return false;
+
+            Square s1 = this.Square;
+            Square s2 = p.Square;
+
+            return s1.AlignVertical(s2) || s1.AlignHorizontal(s2);
+        }
 
         public override List<(int, int)> CalcList()
         {
             return new List<(int, int)> { (-1, 0), (0, -1), (0, 1), (1, 0) };
         }
+
+        public override Image FigureW { get => Properties.Resources.rookW; }
+        public override Image FigureB { get => Properties.Resources.rookB; }
     }
 
 
     public class Bishop : SlidingPiece
     {
-        public override Image FigureW { get => Properties.Resources.bishopW; }
-        public override Image FigureB { get => Properties.Resources.bishopB; }
-        public Bishop(int state, int x, int y, int c) : base(state, x, y, c) { }
+        public Bishop(int state, Square s, int c) : base(state, s, c) { }
+
+        public override bool ValidCapture(Piece p)
+        {
+            if (this == p || this.nCapturesLeft <= 0)
+                return false;
+
+            Square s1 = this.Square;
+            Square s2 = p.Square;
+
+            return s1.AlignDiagonal1(s2) || s1.AlignDiagonal2(s2);
+        }
+
 
         public override List<(int, int)> CalcList()
         {
             return new List<(int, int)> { (-1, -1), (-1, 1), (1, -1), (1, 1) };
         }
+
+        public override Image FigureW { get => Properties.Resources.bishopW; }
+        public override Image FigureB { get => Properties.Resources.bishopB; }
     }
 
-
-    
 }
