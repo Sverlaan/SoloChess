@@ -29,7 +29,7 @@ namespace SoloChess
             this.DoubleBuffered = true;
 
             // Canvas for drawing the board
-            board = new ChessBoard(new Puzzle(Generator.GenValidInstance(12)));
+            board = new ChessBoard(new Puzzle(Generator.GenValidInstance(5)));
             board.Location = new Point(marge_big + marge_small, marge_big + marge_small);
             
             input_button = new MyButton("Input", board.Left, board.Bottom + marge_small + marge_big);
@@ -130,7 +130,7 @@ namespace SoloChess
                         if (clicked != null && game.ValidMove(clicked, piece))
                             gr.FillRectangle(color_attacked, new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
 
-                        if (piece.nCapturesLeft > 0)
+                        if (piece.CapturesLeft > 0)
                             gr.DrawImage(piece.FigureW, new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
                         else
                             gr.DrawImage(piece.FigureB, new Rectangle(x * cellsize, y * cellsize, cellsize, cellsize));
@@ -153,7 +153,14 @@ namespace SoloChess
                     gr.DrawString(y.ToString(), font, color_black, new Point(0, y * cellsize));
             }
 
-            //gr.FillRectangle(color_attacked, new Rectangle(5 * cellsize, 7 * cellsize, cellsize, cellsize));
+            if (game.goal)
+            {
+                StringFormat format = new StringFormat();
+                format.LineAlignment = StringAlignment.Center;
+                format.Alignment = StringAlignment.Center;
+                gr.DrawString("Solved", new Font("Gorga Grotesque", 50, FontStyle.Regular), Brushes.Green, this.ClientRectangle, format);
+            }
+                
         }
 
         protected override void OnMouseClick(MouseEventArgs mea)
@@ -203,12 +210,15 @@ namespace SoloChess
         public void NewGame(int difficulty) 
         { 
             game = new Puzzle(Generator.GenValidInstance(difficulty));
+            
             clicked = null;
             this.Invalidate(); 
         }
         public void NewGame(StreamReader sr) 
         { 
             game = new Puzzle(new Instance(sr));
+            Solver solver = new Solver(game);
+            solver.Solve(((Piece[])game.pieces.Clone()).ToList(), new Stack<string>(), true);
             clicked = null;
             this.Invalidate(); 
         }

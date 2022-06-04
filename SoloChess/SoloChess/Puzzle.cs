@@ -12,6 +12,9 @@ namespace SoloChess
         public Piece[,] grid;
         public Piece[] pieces;
 
+        public int depth;
+        public bool goal;
+
         public Instance start_config;
 
 
@@ -19,6 +22,8 @@ namespace SoloChess
         {
             ParseInstance(instance);
             InitNodes();
+            depth = pieces.Length;
+            goal = false;
         }
 
         public void InitNodes()
@@ -64,8 +69,6 @@ namespace SoloChess
                 InitNodes2(l.OrderBy(p => p.X + p.Y).Select(n => n.bids.dig2).ToList());
         }
          
-        
-        
 
         public void ParseInstance(Instance instance)
         {
@@ -89,17 +92,17 @@ namespace SoloChess
             switch(p)
             {
                 case 1:
-                    return new King(p, s, c);
+                    return new King(s, c);
                 case 2:
-                    return new Queen(p, s, c);
+                    return new Queen(s, c);
                 case 3:
-                    return new Rook(p, s, c);
+                    return new Rook(s, c);
                 case 4:
-                    return new Bishop(p, s, c);
+                    return new Bishop(s, c);
                 case 5:
-                    return new Knight(p, s, c);
+                    return new Knight(s, c);
                 default:
-                    return new Pawn(p, s, c);
+                    return new Pawn(s, c);
             }
         }
 
@@ -109,20 +112,18 @@ namespace SoloChess
             grid[p.Square.X, p.Square.Y] = null;
             grid[q.Square.X, q.Square.Y] = p;
 
-            p.nCapturesLeft--;
+            p.CapturesLeft--;
 
             p.Square.bids.Remove();
             p.Square = q.Square;
+
+            depth--;
+            if (depth <= 1)
+                goal = true;
         }
 
         public bool ValidMove(Piece p, Piece q)
         {
-            /*
-            if (p == q)
-                return false;
-            if (p.nCapturesLeft <= 0)
-                return false;
-            */
             return p.ValidCapture(q);
         }
 
@@ -130,6 +131,8 @@ namespace SoloChess
         {
             ParseInstance(start_config);
             InitNodes();
+            depth = pieces.Length;
+            goal = false;
         }
     }
 

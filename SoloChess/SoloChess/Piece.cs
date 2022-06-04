@@ -7,20 +7,28 @@ using System.Drawing;
 
 namespace SoloChess
 {
+
+    
+
+
+
     public abstract class Piece
     {
-        public int State { get; set; }
+        public abstract int State { get;}
+        public int out_count;
+        public int in_count;
+
+        public abstract int Rank { get; }
         public Square Square {get; set;}
-        public int nCapturesLeft { get; set; }
+        public int CapturesLeft { get; set; }
         public abstract Image FigureW { get; }
         public abstract Image FigureB { get; }
 
 
-        public Piece(int state, Square s, int c)
+        public Piece(Square s, int c)
         {
-            this.State = state;
             this.Square = s;
-            nCapturesLeft = c;
+            CapturesLeft = c;
         }
 
 
@@ -51,11 +59,14 @@ namespace SoloChess
 
     public class King : Piece
     {
-        public King(int state, Square s, int c) : base(state, s, c) { }
+        public override int Rank { get => 9999; }
+        public override int State { get => 1; }
+
+        public King(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.nCapturesLeft <= 0)
+            if (this == p || this.CapturesLeft <= 0)
                 return false;
 
             return Math.Abs(this.Square.X - p.Square.X) <= 1 && Math.Abs(this.Square.Y - p.Square.Y) <= 1;
@@ -73,11 +84,13 @@ namespace SoloChess
 
     public class Knight : Piece
     {
-        public Knight(int state, Square s, int c) : base(state, s, c) { }
+        public override int Rank { get => 3; }
+        public override int State { get => 5; }
+        public Knight(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.nCapturesLeft <= 0)
+            if (this == p || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -107,11 +120,13 @@ namespace SoloChess
 
     public class Pawn : Piece
     {
-        public Pawn(int state, Square s, int c) : base(state, s, c) { }
+        public override int Rank { get => 1; }
+        public override int State { get => 6; }
+        public Pawn(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.nCapturesLeft <= 0)
+            if (this == p || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -139,7 +154,7 @@ namespace SoloChess
 
     public abstract class SlidingPiece : Piece
     {
-        public SlidingPiece(int state, Square s, int c) : base(state, s, c) { }
+        public SlidingPiece(Square s, int c) : base(s, c) { }
 
         public override List<(int, int)> GetOptions(Piece[,] grid)
         {
@@ -165,11 +180,13 @@ namespace SoloChess
 
     public class Queen : SlidingPiece
     {
-        public Queen(int state, Square s, int c) : base(state, s, c) { }
+        public override int Rank { get => 9; }
+        public override int State { get => 2; }
+        public Queen(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.nCapturesLeft <= 0)
+            if (this == p || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -191,11 +208,13 @@ namespace SoloChess
 
     public class Rook : SlidingPiece
     {
-        public Rook(int state, Square s, int c) : base(state, s, c) { }
+        public override int Rank { get => 5; }
+        public override int State { get => 3; }
+        public Rook(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.nCapturesLeft <= 0)
+            if (this == p || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -216,11 +235,13 @@ namespace SoloChess
 
     public class Bishop : SlidingPiece
     {
-        public Bishop(int state, Square s, int c) : base(state, s, c) { }
+        public override int Rank { get => 5; }
+        public override int State { get => 4; }
+        public Bishop(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.nCapturesLeft <= 0)
+            if (this == p || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;

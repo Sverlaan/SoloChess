@@ -51,7 +51,7 @@ namespace SoloChess
                 int startY = rdm.Next(0, 8);
                 Square square = new Square(startX, startY);
 
-                Piece piece = new King(1, square, 2);  // always exactly one king /////
+                Piece piece = new King(square, 2);  // always exactly one king /////
                 grid[startX, startY] = piece;
                 pieces[0] = piece;
                 List<Piece> nonfixed = new List<Piece>();
@@ -81,8 +81,8 @@ namespace SoloChess
                     (int newX, int newY) = options[rdm.Next(0, options.Count)];
                     Square new_square = new Square(newX, newY);
 
-                    p1.nCapturesLeft--;
-                    if (p1.nCapturesLeft <= 0)
+                    p1.CapturesLeft--;
+                    if (p1.CapturesLeft <= 0)
                         nonfixed.Remove(p1);
 
                     Piece p2 = ParseState(rdm.Next(2, 7), p1.Square, 2);
@@ -112,17 +112,17 @@ namespace SoloChess
             switch (p)
             {
                 case 1:
-                    return new King(p, s, c);
+                    return new King(s, c);
                 case 2:
-                    return new Queen(p, s, c);
+                    return new Queen(s, c);
                 case 3:
-                    return new Rook(p, s, c);
+                    return new Rook(s, c);
                 case 4:
-                    return new Bishop(p, s, c);
+                    return new Bishop(s, c);
                 case 5:
-                    return new Knight(p, s, c);
+                    return new Knight(s, c);
                 default:
-                    return new Pawn(p, s, c);
+                    return new Pawn(s, c);
             }
         }
 
