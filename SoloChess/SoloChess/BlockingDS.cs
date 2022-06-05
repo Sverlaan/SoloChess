@@ -38,6 +38,20 @@ namespace SoloChess
                     node.next.prev = node;
             }
         }
+
+        public bool Empty()
+        {
+            bool empty = false;
+            foreach (Node node in new List<Node>() { this.hor, this.vert, this.dig1, this.dig2 })
+            {
+                if (node.prev != null)
+                    empty = true;
+                if (node.next != null)
+                    empty = true;
+            }
+
+            return empty;
+        }
     }
 
 

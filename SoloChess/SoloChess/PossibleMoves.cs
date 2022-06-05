@@ -10,18 +10,18 @@ namespace SoloChess
     
     internal class Solver
     {
-        List<Move> moves;
         Puzzle puzzle;
         Random rdm;
+        public LinkedList<string> solution;
         public int nBacktracks = 0;
         int iter = 0;
         Square center;
+        int depth;
 
         public Solver(Puzzle puzzle)
         {
             rdm = new Random();
             this.puzzle = puzzle;
-            moves = GeneratePossibleMoves(puzzle.pieces.ToList());
 
             center = InitCenter();
         }
@@ -49,6 +49,7 @@ namespace SoloChess
             Console.WriteLine(move);
         }
 
+
         public static void Shuffle(IList<Move> list)
         {
             RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
@@ -71,29 +72,58 @@ namespace SoloChess
             return (p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y);
         }
 
-        public (bool, int) Solve(List<Piece> pieces, Stack<string> plan, bool heuristic)
+        public int Solve(Puzzle puzzle, int heuristic, bool forward_check)
+        {
+            this.depth = 0;
+            this.nBacktracks = 0;
+            (bool solution_found, int nb) = SolveRecursive(puzzle.pieces.ToList(), new Stack<string>(), heuristic, forward_check);
+            if (solution_found)
+                return nb;
+            else
+            {
+                Console.WriteLine("NO SOLUTION FOUND");
+                return -1;
+            }
+        }
+
+        public (bool, int) SolveRecursive(List<Piece> pieces, Stack<string> plan, int heuristic, bool forward_check)
         {
 
             if (GoalState(pieces))
             {
-                //Console.WriteLine($"Solution found after {nBacktracks} backtracks");
-                //OutputPlan(plan);
-                //Console.Write(nBacktracks + ",");
+                Console.WriteLine($"SOLUTION FOUND AFTER {nBacktracks} BACKTRACKS");
+
+                solution = new LinkedList<string>();
+                foreach (string s in plan)
+                    solution.AddFirst(s);
+
+                OutputPlan(plan);
                 return (true, nBacktracks);
             }
 
-            List<Move> possible_moves = GeneratePossibleMoves(pieces);
-            
-            
 
-            if (heuristic)
+            depth++;
+            (List<Move> possible_moves, bool dead_end) = GeneratePossibleMoves(pieces, forward_check);
+
+            //Console.WriteLine(depth + " " + possible_moves.Count);
+            if (dead_end)
+                return (false, -9999);
+            
+            switch(heuristic)
             {
-                //possible_moves = possible_moves.OrderBy(m => m.from.Rank + m.to.Rank * m.to.CapturesLeft).ToList();
-                //possible_moves = possible_moves.OrderBy(m => m.from.in_count + m.from.out_count + m.to.out_count).ToList();
-                possible_moves = possible_moves.OrderByDescending(m => Distance(m.from.Square, m.to.Square) + Distance(m.from.Square, center)).ToList();
-            }
-            else
-                Shuffle(possible_moves);
+                case 1:
+                    possible_moves = possible_moves.OrderBy(m => m.from.Rank + m.to.Rank * m.to.CapturesLeft).ToList();
+                    break;
+                case 2:
+                    possible_moves = possible_moves.OrderBy(m => m.from.in_count + m.from.out_count + m.to.out_count).ToList();
+                    break;
+                case 3:
+                    possible_moves = possible_moves.OrderByDescending(m => Distance(m.from.Square, m.to.Square) + Distance(m.from.Square, center)).ToList();
+                    break;
+                default:
+                    Shuffle(possible_moves);
+                    break;
+            }  
 
             foreach (Move move in possible_moves)
             {
@@ -110,7 +140,7 @@ namespace SoloChess
                 p.Square = q.Square;
                 pieces.Remove(q);
 
-                (bool solution_found, int nb) = Solve(pieces, plan, heuristic);
+                (bool solution_found, int nb) = SolveRecursive(pieces, plan, heuristic, forward_check);
                 if (solution_found)
                     return (true, nb);
 
@@ -118,6 +148,7 @@ namespace SoloChess
 
                 iter++;
                 nBacktracks++;
+                depth--;
                 /*
                 if (iter == 10000)
                 {
@@ -154,7 +185,7 @@ namespace SoloChess
             }
         }
 
-        public List<Move> GeneratePossibleMoves(List<Piece> pieces)
+        public (List<Move>, bool) GeneratePossibleMoves(List<Piece> pieces, bool forward_check)
         {
             List<Move> valid_moves = new List<Move>();
 
@@ -166,7 +197,6 @@ namespace SoloChess
 
             foreach(Piece p in pieces)
             {
-                
                 foreach(Piece q in pieces)
                 {
 
@@ -177,9 +207,20 @@ namespace SoloChess
                         q.in_count++;
                     }
                 }
+
             }
 
-            return valid_moves;
+            if (forward_check)
+            {
+                foreach (Piece p in pieces)
+                {
+                    if (p.out_count == 0 && p.in_count == 0 && p.Square.bids.Empty())
+                        return (null, true);
+                }
+            }
+            
+
+            return (valid_moves, false);
         }
     }
 

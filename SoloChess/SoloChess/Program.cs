@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
+using System.Timers;
 
 namespace SoloChess
 {
@@ -20,45 +21,49 @@ namespace SoloChess
 
             //Generator.WriteInputs(5, 4, 20);
 
-            //Application.Run(new ChessForm());
+            Application.Run(new ChessForm());
+             
+            //Test(nPuzzles: 100, nPerPuzzle: 50, diff: 6, heuristic: 1);
+            
 
+        }
+
+
+        static void Test(int nPuzzles, int nPerPuzzle, int diff, int heuristic)
+        {
+            DateTime dt = DateTime.Now;
 
             int rand = 0;
             int heur = 0;
-            int m = 100;
-            for (int j = 0; j < m; j++)
+            for (int j = 1; j <= nPuzzles; j++)
             {
-                Console.WriteLine("iter: " + j);
-                Instance inst = Generator.GenValidInstance(8);
+                Instance inst = Generator.GenValidInstance(diff);
 
-                int total = 0;
-                int n = 50;
-                for (int i = 0; i < n; i++)
-                {
-                    Puzzle puzzle = new Puzzle(inst);
-                    Solver sol = new Solver(puzzle);
-                    sol.nBacktracks = 0;
-                    //sol.InitCenter(puzzle.pieces.ToList());
-                    (bool solved, int nback) = sol.Solve(puzzle.pieces.ToList(), new Stack<string>(), false);
-                    total += nback;
-                }
-                rand += total / n;
+                rand += SolveIt(inst, nPerPuzzle, 0, false);
+                heur += SolveIt(inst, 1, heuristic, true);
 
-                Puzzle puzzle2 = new Puzzle(inst);
-                Solver sol2 = new Solver(puzzle2);
-                //sol2.InitCenter(puzzle2.pieces.ToList());
-                sol2.nBacktracks = 0;
-                (bool solved2, int nback2) = sol2.Solve(puzzle2.pieces.ToList(), new Stack<string>(), true);
-                heur += nback2;
+
+                Console.WriteLine((j / (float)nPuzzles)*100 + " %");
             }
-            int rand_gem = rand / m;
-            int heur_gem = heur / m;
-            Console.WriteLine("RAND BT: " + rand_gem);
-            Console.WriteLine("HEUR BT: " + heur_gem);
-            Console.WriteLine("ratio: " + (((float) heur_gem) + 1) / (((float)rand_gem) + 1));
-            Console.WriteLine("diff: " + (rand_gem - heur_gem));
+            int rand_gem = rand / nPuzzles;
+            int heur_gem = heur / nPuzzles;
+            Console.WriteLine("\nRAND BT: " + rand_gem + "\n" + "HEUR BT: " + heur_gem);
+            Console.WriteLine("ratio: " + (((float)heur_gem) + 1) / (((float)rand_gem) + 1) + "\n" + "diff: " + (rand_gem - heur_gem));
+            Console.WriteLine((DateTime.Now - dt).TotalSeconds);
             Console.ReadLine();
+        }
 
+        static int SolveIt(Instance inst, int n, int heuristic, bool forward_check)
+        {
+            int res = 0;
+            for (int i = 0; i < n; i++)
+            {
+                Puzzle puzzle = new Puzzle(inst);
+                Solver sol = new Solver(puzzle);
+                int nback = sol.Solve(puzzle, heuristic, forward_check);
+                res += nback;
+            }
+            return res / n;
         }
     }
 }
