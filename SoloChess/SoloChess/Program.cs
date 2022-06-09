@@ -22,45 +22,47 @@ namespace SoloChess
             //Generator.WriteInputs(5, 4, 20);
 
             Application.Run(new ChessForm());
-             
-            //Test(nPuzzles: 100, nPerPuzzle: 50, diff: 6, heuristic: 1);
-            
 
+            //Test(nPuzzles: 1000, nPerPuzzle: 100, diff: 8);
+            //Console.ReadLine();
         }
 
+        
 
-        static void Test(int nPuzzles, int nPerPuzzle, int diff, int heuristic)
+
+        static void Test(int nPuzzles, int nPerPuzzle, int diff, string heur1, string heur2)
         {
             DateTime dt = DateTime.Now;
 
-            int rand = 0;
-            int heur = 0;
+            int heur1_backtracks = 0;
+            int heur2_backtracks = 0;
+
             for (int j = 1; j <= nPuzzles; j++)
             {
                 Instance inst = Generator.GenValidInstance(diff);
 
-                rand += SolveIt(inst, nPerPuzzle, 0, false);
-                heur += SolveIt(inst, 1, heuristic, true);
-
+                heur1_backtracks += SolveIt(inst, nPerPuzzle, heur1);
+                heur2_backtracks += SolveIt(inst, 1, heur2);
 
                 Console.WriteLine((j / (float)nPuzzles)*100 + " %");
             }
-            int rand_gem = rand / nPuzzles;
-            int heur_gem = heur / nPuzzles;
-            Console.WriteLine("\nRAND BT: " + rand_gem + "\n" + "HEUR BT: " + heur_gem);
-            Console.WriteLine("ratio: " + (((float)heur_gem) + 1) / (((float)rand_gem) + 1) + "\n" + "diff: " + (rand_gem - heur_gem));
+
+            int heur1_gem = heur1_backtracks / nPuzzles;
+            int heur2_gem = heur2_backtracks / nPuzzles;
+
+            Console.WriteLine("\nRAND BT: " + heur1_gem + "\n" + "HEUR BT: " + heur2_gem);
+            Console.WriteLine("ratio: " + (((float)heur2_gem) + 1) / (((float)heur1_gem) + 1));
             Console.WriteLine((DateTime.Now - dt).TotalSeconds);
-            Console.ReadLine();
         }
 
-        static int SolveIt(Instance inst, int n, int heuristic, bool forward_check)
+        static int SolveIt(Instance inst, int n, string heur_fun)
         {
             int res = 0;
             for (int i = 0; i < n; i++)
             {
                 Puzzle puzzle = new Puzzle(inst);
-                Solver sol = new Solver(puzzle);
-                int nback = sol.Solve(puzzle, heuristic, forward_check);
+                Solver solver = new Solver(puzzle, heur_fun);
+                (LinkedList<string> sol, int nback) = solver.Solve(puzzle);
                 res += nback;
             }
             return res / n;

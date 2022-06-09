@@ -8,15 +8,15 @@ using System.Drawing;
 namespace SoloChess
 {
 
-    
-
-
-
     public abstract class Piece
     {
         public abstract int State { get;}
-        public int out_count;
-        public int in_count;
+
+        public List<Move> in_moves;
+        public List<Move> out_moves;
+
+        public int possible_knight_attack;
+        public int index_places;
 
         public abstract int Rank { get; }
         public Square Square {get; set;}
@@ -29,7 +29,16 @@ namespace SoloChess
         {
             this.Square = s;
             CapturesLeft = c;
+            in_moves = new List<Move>();
+            out_moves = new List<Move>();
+
+            possible_knight_attack = 0;
         }
+
+
+        
+
+
 
 
         public abstract bool ValidCapture(Piece p);
@@ -96,6 +105,12 @@ namespace SoloChess
             Square s1 = this.Square;
             Square s2 = p.Square;
 
+            if (Math.Abs(s2.X - s1.X) == 1 && Math.Abs(s2.Y - s1.Y) == 2)
+                return true;
+            else if (Math.Abs(s2.X - s1.X) == 2 && Math.Abs(s2.Y - s1.Y) == 1)
+                return true;
+
+            /*
             if (s2.Y == s1.Y - 2 && (s2.X == s1.X - 1 || s2.X == s1.X + 1))
                 return true;
             else if (s2.Y == s1.Y + 2 && (s2.X == s1.X - 1 || s2.X == s1.X + 1))
@@ -104,7 +119,7 @@ namespace SoloChess
                 return true;
             else if (s2.X == s1.X + 2 && (s2.Y == s1.Y - 1 || s2.Y == s1.Y + 1))
                 return true;
-
+            */
             return false;
         }
 

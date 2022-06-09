@@ -15,6 +15,7 @@ namespace SoloChess
         ChessBoard board;
         MyButton input_button, generate_button, restart_button, solve_button;
         NumericUpDown nup;
+        MyComboBox cb;
 
         int marge_small = 1;
         int marge_big = 30;
@@ -23,7 +24,7 @@ namespace SoloChess
         public ChessForm()
         {
             // Form settings
-            this.Size = new Size(558, 650);
+            this.Size = new Size(558, 680);
             this.Text = "Solo Chess";
             //this.Icon = Properties.Resources.logo;
             this.BackColor = Color.FromArgb(88, 85, 80);
@@ -33,26 +34,46 @@ namespace SoloChess
             board = new ChessBoard(new Puzzle(Generator.GenValidInstance(5)));
             board.Location = new Point(marge_big + marge_small, marge_big + marge_small);
             
-            input_button = new MyButton("Input", board.Left, board.Bottom + marge_small + marge_big);
-            restart_button = new MyButton("Restart", input_button.Right + marge_small, input_button.Top);
-            solve_button = new MyButton("Solve", restart_button.Right + marge_small, restart_button.Top);
-            generate_button = new MyButton("Generate", solve_button.Right + marge_small, solve_button.Top);
+            input_button = new MyButton("Input", board.Left, board.Bottom + marge_small + marge_big, 119, 61);
+            restart_button = new MyButton("Restart", input_button.Right + marge_small, input_button.Top, 119, 61);
+            generate_button = new MyButton("Generate", restart_button.Right + marge_small, restart_button.Top, 119, 30);
+
+            solve_button = new MyButton("Solve", restart_button.Right + marge_small, generate_button.Bottom + marge_small, 119, 30);
+            
             nup = new NumericUpDown
             {
                 Location = new Point(generate_button.Right + marge_small, generate_button.Top),
-                Size = new Size(96, 200),
+                Size = new Size(119, 30),
                 Value = 12,
                 Maximum = 64,
                 Minimum = 2,
                 Increment = 1,
-                BorderStyle = BorderStyle.FixedSingle,
-                Font = new Font("Gorga Grotesque", (float)17.5, FontStyle.Regular),
+                BorderStyle = BorderStyle.Fixed3D,
+                Font = new Font("Gorga Grotesque", (float)15, FontStyle.Regular),
                 BackColor = Color.FromArgb(66, 62, 58),
                 ForeColor = Color.FromArgb(156, 148, 144),
                 TextAlign = HorizontalAlignment.Center
             };
-            nup.BorderStyle = BorderStyle.None;
-
+            //nup.BorderStyle = BorderStyle.None;
+            
+            cb = new MyComboBox
+            {
+                Location = new Point(solve_button.Right + marge_small,  solve_button.Top),
+                Size = new Size(119, 30),
+                FlatStyle = FlatStyle.Popup,
+                
+                Font = new Font("Gorga Grotesque", 11, FontStyle.Regular),
+                BackColor = Color.FromArgb(66, 62, 58),
+                ForeColor = Color.FromArgb(156, 148, 144),
+            };
+            cb.Items.Add("Random");
+            cb.Items.Add("Rank");
+            cb.Items.Add("Attack");
+            cb.Items.Add("Center");
+            cb.SelectedItem = "Random";
+            
+            //cb.Region = new Region(new Rectangle(1, 1, cb.Width - 1, cb.Height - 2));
+            
 
             // Events
             this.Paint += DrawForm;
@@ -62,7 +83,7 @@ namespace SoloChess
             generate_button.Click += NewGame;
 
             // Add controls
-            Controls.AddRange(new Control[] { board, input_button, restart_button, solve_button, generate_button, nup });
+            Controls.AddRange(new Control[] { board, input_button, restart_button, solve_button, generate_button, nup, cb });
         }
 
         private void DrawForm(object sender, PaintEventArgs pea)
@@ -86,19 +107,17 @@ namespace SoloChess
 
         public void RestartGame(object sender, EventArgs ea){ board.Restart(); }
 
-        public void SolveGame(object sender, EventArgs ea) { board.Solve(); }
+        public void SolveGame(object sender, EventArgs ea) { board.Solve((string)cb.SelectedItem); }
     }
 
 
     public class ChessBoard : Panel
     {
         private Puzzle game;
-        Piece clicked;
-        Piece sol_from, sol_to;
-        Timer timer;
-        LinkedListNode<string> current_move, start_move;
-        int counter;
-
+        private Piece clicked, sol_from, sol_to;
+        private Timer animation;
+        private LinkedListNode<string> current_move, start_move;
+        private int counter;
         private Brush color_black, color_white, color_selected, color_attacked;
 
         public ChessBoard(Puzzle game)
@@ -107,22 +126,24 @@ namespace SoloChess
             BackColor = Color.Red;
             ResizeRedraw = true;
             DoubleBuffered = true;
-            color_white = new SolidBrush(Color.FromArgb(240, 217, 181));//Brushes.AntiqueWhite;
-            color_black = new SolidBrush(Color.FromArgb(181, 136, 99));// Brushes.SandyBrown;
+
+            color_white = new SolidBrush(Color.FromArgb(240, 217, 181));
+            color_black = new SolidBrush(Color.FromArgb(181, 136, 99));
             color_selected = Brushes.YellowGreen;
             color_attacked = Brushes.IndianRed;
-            timer = new Timer();
+
+            animation = new Timer();
             this.game = game;
-            this.timer.Tick += timer_tick;
+            this.animation.Tick += animation_step;
         }
 
         
-
         protected override void OnPaint(PaintEventArgs pea)
         {
             Graphics gr = pea.Graphics;
             int cellsize = this.Width / game.grid.GetLength(0);
 
+            // Draw board cells and pieces
             for (int x = 0; x < game.grid.GetLength(0); x++)
                 for (int y = 0; y < game.grid.GetLength(1); y++)
                 {
@@ -149,7 +170,7 @@ namespace SoloChess
                     }
                 }
 
-            // DrawLine From To solution visualisation
+            // Draw arrow used in solution visualisation
             if (counter % 2 == 0 && sol_from != null && sol_to != null)
             {
                 Pen p = new Pen(color_attacked, 10);
@@ -157,7 +178,7 @@ namespace SoloChess
                 gr.DrawLine(p, (float)(sol_from.Square.X * cellsize + 0.5 * cellsize), (float)(sol_from.Square.Y * cellsize + 0.5 * cellsize), (float)(sol_to.Square.X * cellsize + 0.5 * cellsize), (float)(sol_to.Square.Y * cellsize + 0.5 * cellsize));
             }
                 
-
+            // Draw cell indices
             Font font = new Font("Gorga Grotesque", 10, FontStyle.Bold);
             for (int x = 0; x < game.grid.GetLength(0); x++)
             {
@@ -174,18 +195,33 @@ namespace SoloChess
                     gr.DrawString(y.ToString(), font, color_black, new Point(0, y * cellsize));
             }
 
+            // Draw string
             if (game.goal)
             {
                 StringFormat format = new StringFormat();
                 format.LineAlignment = StringAlignment.Center;
                 format.Alignment = StringAlignment.Center;
                 gr.DrawString("Solved", new Font("Gorga Grotesque", 50, FontStyle.Regular), Brushes.Green, this.ClientRectangle, format);
-            }
-                
+            } 
         }
 
         protected override void OnMouseClick(MouseEventArgs mea)
         {
+            Piece GetClickedPiece(int click_x, int click_y)
+            {
+                // Get corresponding grid cell from pixel coordinates
+                int Xcell = (int)(click_x / (this.Height / game.grid.GetLength(1)));
+                int Ycell = (int)(click_y / (this.Width / game.grid.GetLength(0)));
+
+                // Prevents index out of bounds error when clicking on outer edge
+                if (Xcell >= game.grid.GetLength(0))
+                    Xcell -= 1;
+                if (Ycell >= game.grid.GetLength(1))
+                    Ycell -= 1;
+
+                return game.grid[Xcell, Ycell];
+            }
+
             // Handle movement highlighting
             Piece piece = GetClickedPiece(mea.X, mea.Y);
             if (piece != null)
@@ -207,103 +243,77 @@ namespace SoloChess
             this.Invalidate();
         }
 
-        private Piece GetClickedPiece(int click_x, int click_y)
-        {
-            // Get corresponding grid cell from pixel coordinates
-            int Xcell = (int)(click_x / (this.Height / game.grid.GetLength(1)));
-            int Ycell = (int)(click_y / (this.Width / game.grid.GetLength(0)));
-
-            // Prevents index out of bounds error when clicking on outer edge
-            if (Xcell >= game.grid.GetLength(0))
-                Xcell -= 1;
-            if (Ycell >= game.grid.GetLength(1))
-                Ycell -= 1;
-
-            return game.grid[Xcell, Ycell];
-        }
-
         public void Restart() 
         { 
+            // Restart the current game
             clicked = null; 
             game.Restart(); 
             this.Invalidate(); 
         }
-        public void Solve()
+        public void Solve(string heur)
         {
-            Solver solver = new Solver(game);
-            solver.Solve(game, 3, true);
+            // Construct solution and start animation
+            Solver solver = new Solver(game, heur);
+            (LinkedList<string> sol, int bt) = solver.Solve(game);
+            solver.OutputPlan(sol);
             Restart();
-            StartSolutionVisualisation(solver.solution);
+            StartAnimation(sol);
         }
 
-
-        public void StartSolutionVisualisation(LinkedList<string> solution)
+        public void StartAnimation(LinkedList<string> solution)
         {
+            // Start solution visualisation
             current_move = solution.First;
             start_move = solution.First;
-            timer.Interval = 350;
+            animation.Interval = 350;
             counter++;
-            timer.Start();
+            animation.Start();
         }
-
-        (Piece, Piece) ParseMove(string move)
+        private void animation_step(object sender, EventArgs ea)
         {
-            string[] line = move.Split('x');
-            Piece p = game.grid[int.Parse(line[0][1].ToString()), int.Parse(line[0][2].ToString())];
-            Piece q = game.grid[int.Parse(line[1][1].ToString()), int.Parse(line[1][2].ToString())];
-            return (p, q);
-        }
-
-        private void timer_tick(object sender, EventArgs ea)
-        {
-            if (counter % 2 == 0)
+            (Piece, Piece) ParseMove(string move)
             {
-                Piece p = sol_from;
-                Piece q = sol_to;
+                // Parse move from solution plan
+                string[] line = move.Split('x');
+                Piece p = game.grid[int.Parse(line[0][1].ToString()), int.Parse(line[0][2].ToString())];
+                Piece q = game.grid[int.Parse(line[1][1].ToString()), int.Parse(line[1][2].ToString())];
+                return (p, q);
+            }
 
+            if (counter % 2 == 0)  // Intertwine movements with pauses
+            {
+                // Execute move
                 if (current_move != start_move)
-                {
-                    game.MoveVertex(p, q);
-                }
+                    game.MoveVertex(sol_from, sol_to);
 
                 if (current_move != null)
                 {
-                    (p, q) = ParseMove(current_move.Value);
-                    sol_from = p;
-                    sol_to = q;
-
+                    // Get next move to animate
+                    (sol_from, sol_to) = ParseMove(current_move.Value);
                     current_move = current_move.Next;
-                    this.Invalidate();
                 }
                 else
                 {
-                    this.Invalidate();
+                    // All moves executed, stop animation
                     counter = 0;
-                    timer.Stop();
+                    animation.Stop();
                 }
             }
-            else
-            {
-                this.Invalidate();
-            }
-            counter++;
 
+            this.Invalidate();
+            counter++;
         }
 
-        
-
-
-
-
         public void NewGame(int difficulty) 
-        { 
+        {
+            // Start new generated puzzle
             game = new Puzzle(Generator.GenValidInstance(difficulty));
-            
             clicked = null;
             this.Invalidate(); 
         }
         public void NewGame(StreamReader sr) 
         { 
+            // Start new puzzle from input file
             game = new Puzzle(new Instance(sr));
             clicked = null;
             this.Invalidate(); 
@@ -313,12 +323,13 @@ namespace SoloChess
         private void ResetClicked(){ clicked = null; } // Unhighlight
     }
 
+
     class MyButton : Button
     {
-        public MyButton(string text, int x, int y)
+        public MyButton(string text, int x, int y, int width, int height)
         {
             this.Location = new Point(x, y);
-            this.Size = new Size(95, 30);
+            this.Size = new Size(width, height);
             this.BackColor = Color.FromArgb(66, 62, 58); 
             this.ForeColor = Color.FromArgb(156, 148, 144); 
             this.FlatStyle = FlatStyle.Flat;
@@ -328,15 +339,48 @@ namespace SoloChess
         }
     }
 
+    class MyComboBox : ComboBox
+    {
+        public MyComboBox()
+        {
+            this.DropDownStyle = ComboBoxStyle.DropDownList;
+            this.DrawMode = DrawMode.OwnerDrawFixed;
+            this.DrawItem += cbxDesign_DrawItem;
+            this.ItemHeight = 23;
+        }
 
-    
 
+        private void cbxDesign_DrawItem(object sender, DrawItemEventArgs e)
+        {
+            // By using Sender, one method could handle multiple ComboBoxes
+            ComboBox cbx = sender as ComboBox;
+            if (cbx != null)
+            {
+                // Always draw the background
+                e.DrawBackground();
 
+                // Drawing one of the items?
+                if (e.Index >= 0)
+                {
+                    // Set the string alignment.  Choices are Center, Near and Far
+                    StringFormat sf = new StringFormat();
+                    sf.LineAlignment = StringAlignment.Center;
+                    sf.Alignment = StringAlignment.Center;
 
+                    // Set the Brush to ComboBox ForeColor to maintain any ComboBox color settings
+                    // Assumes Brush is solid
+                    Brush brush = new SolidBrush(cbx.ForeColor);
 
+                    // If drawing highlighted selection, change brush
+                    if ((e.State & DrawItemState.Selected) == DrawItemState.Selected)
+                        brush = SystemBrushes.HighlightText;
 
-
-
+                    // Draw the string
+                    e.Graphics.DrawString(cbx.Items[e.Index].ToString(), cbx.Font, brush, e.Bounds, sf);
+                }
+            }
+        }
+    }
 
 
 }

@@ -9,12 +9,14 @@ namespace SoloChess
     public class BlockingInfoDS
     {
         public Node hor, vert, dig1, dig2;
+        public int possible_knight_attacks;
         public BlockingInfoDS()
         {
             vert = new Node();
             hor = new Node();
             dig1 = new Node();
             dig2 = new Node();
+            possible_knight_attacks = 0;
         }
 
         public void Remove()
@@ -30,7 +32,7 @@ namespace SoloChess
 
         public void AddBack()
         {
-            foreach (Node node in new List<Node>() { this.hor, this.vert, this.dig1, this.dig2 })
+            foreach (Node node in new List<Node>() { this.hor, this.vert, this.dig1, this.dig2})
             {
                 if (node.prev != null)
                     node.prev.next = node;
@@ -41,13 +43,13 @@ namespace SoloChess
 
         public bool Empty()
         {
-            bool empty = false;
-            foreach (Node node in new List<Node>() { this.hor, this.vert, this.dig1, this.dig2 })
+            bool empty = true;
+            foreach (Node node in new List<Node>() { this.hor, this.vert, this.dig1, this.dig2})
             {
                 if (node.prev != null)
-                    empty = true;
+                    empty = false;
                 if (node.next != null)
-                    empty = true;
+                    empty = false;
             }
 
             return empty;

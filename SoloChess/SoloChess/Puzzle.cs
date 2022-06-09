@@ -67,6 +67,8 @@ namespace SoloChess
             grouped_squares = squares2.GroupBy(p => p.X - p.Y).Select(grp => grp.ToList()).ToList();
             foreach (List<Square> l in grouped_squares)
                 InitNodes2(l.OrderBy(p => p.X + p.Y).Select(n => n.bids.dig2).ToList());
+
+            
         }
          
 
