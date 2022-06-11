@@ -58,6 +58,7 @@
     <Compile Include="Move.cs" />
     <Compile Include="MovesArray.cs" />
     <Compile Include="Piece.cs" />
+    <Compile Include="Tester.cs" />
     <Compile Include="VisitedSet.cs" />
     <Compile Include="Solver.cs" />
     <Compile Include="Puzzle.cs" />

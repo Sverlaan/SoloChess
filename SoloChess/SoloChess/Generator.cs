@@ -10,28 +10,20 @@ namespace SoloChess
     {
         static Random rdm = new Random();
 
-        public static void WriteInputs(int n, int start, int end, int increment = 1)
+        public static void WriteInputs(int n,int diff, string path2)
         {
-            string path = System.Environment.CurrentDirectory;
-            string path2 = path.Substring(0, path.LastIndexOf("bin")) + "inputs";
 
-            if (start < 2 || end > 64 || start > end)
-                throw new Exception();
-
-            int diff = start;
-            while(diff <= end)
+            for (int i = 1; i <= n; i++)
             {
-                for (int i = 0; i < n; i++)
-                {
-                    string filename = path2 + $"\\diff{diff}_input{i}_.txt";
-                    WriteToFile(GenValidInstance(diff).ToString(), filename);
-                }
-                diff += increment;
-            }   
+                string filename = path2 + $"\\level{diff.ToString("D2")}" + $"\\{diff.ToString("D2")}{i.ToString("D4")}.txt";
+                Instance inst = GenValidInstance(diff);
+                WriteToFile(inst.ToString(), filename);
+            }
         }
 
         public static void WriteToFile(string text, string filename)
         {
+            Directory.CreateDirectory(Path.GetDirectoryName(filename));
             StreamWriter writer = new StreamWriter(filename);
             writer.Write(text);
             writer.Close();

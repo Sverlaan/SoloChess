@@ -14,7 +14,7 @@ namespace SoloChess
     {
         ChessBoard board;
         MyButton input_button, generate_button, restart_button, solve_button;
-        NumericUpDown nup;
+        MyNumericUpDown nup;
         MyComboBox cb;
 
         int marge_small = 1;
@@ -24,7 +24,7 @@ namespace SoloChess
         public ChessForm()
         {
             // Form settings
-            this.Size = new Size(558, 680);
+            this.Size = new Size(558, 670);
             this.Text = "Solo Chess";
             //this.Icon = Properties.Resources.logo;
             this.BackColor = Color.FromArgb(88, 85, 80);
@@ -34,45 +34,15 @@ namespace SoloChess
             board = new ChessBoard(new Puzzle(Generator.GenValidInstance(5)));
             board.Location = new Point(marge_big + marge_small, marge_big + marge_small);
             
-            input_button = new MyButton("Input", board.Left, board.Bottom + marge_small + marge_big, 119, 61);
-            restart_button = new MyButton("Restart", input_button.Right + marge_small, input_button.Top, 119, 61);
-            generate_button = new MyButton("Generate", restart_button.Right + marge_small, restart_button.Top, 119, 30);
+            input_button = new MyButton("Input", board.Left, board.Bottom + marge_small + marge_big, true);
+            restart_button = new MyButton("Restart", input_button.Right + marge_small, input_button.Top, true);
+            generate_button = new MyButton("Generate", restart_button.Right + marge_small, restart_button.Top, false);
+            solve_button = new MyButton("Solve", restart_button.Right + marge_small, generate_button.Bottom + marge_small, false);
 
-            solve_button = new MyButton("Solve", restart_button.Right + marge_small, generate_button.Bottom + marge_small, 119, 30);
+            nup = new MyNumericUpDown(generate_button.Right, generate_button.Top);
+
+            cb = new MyComboBox(solve_button.Right, solve_button.Top);
             
-            nup = new NumericUpDown
-            {
-                Location = new Point(generate_button.Right + marge_small, generate_button.Top),
-                Size = new Size(119, 30),
-                Value = 12,
-                Maximum = 64,
-                Minimum = 2,
-                Increment = 1,
-                BorderStyle = BorderStyle.Fixed3D,
-                Font = new Font("Gorga Grotesque", (float)15, FontStyle.Regular),
-                BackColor = Color.FromArgb(66, 62, 58),
-                ForeColor = Color.FromArgb(156, 148, 144),
-                TextAlign = HorizontalAlignment.Center
-            };
-            //nup.BorderStyle = BorderStyle.None;
-            
-            cb = new MyComboBox
-            {
-                Location = new Point(solve_button.Right + marge_small,  solve_button.Top),
-                Size = new Size(119, 30),
-                FlatStyle = FlatStyle.Popup,
-                
-                Font = new Font("Gorga Grotesque", 11, FontStyle.Regular),
-                BackColor = Color.FromArgb(66, 62, 58),
-                ForeColor = Color.FromArgb(156, 148, 144),
-            };
-            cb.Items.Add("Random");
-            cb.Items.Add("Rank");
-            cb.Items.Add("Attack");
-            cb.Items.Add("Center");
-            cb.SelectedItem = "Random";
-            
-            //cb.Region = new Region(new Rectangle(1, 1, cb.Width - 1, cb.Height - 2));
             
 
             // Events
@@ -323,32 +293,71 @@ namespace SoloChess
         private void ResetClicked(){ clicked = null; } // Unhighlight
     }
 
+    class MyNumericUpDown : NumericUpDown
+    {
+        public MyNumericUpDown(int x, int y)
+        {
+            Location = new Point(x, y);
+            Size = new Size(120, 30);
+            Value = 12;
+            Maximum = 64;
+            Minimum = 2;
+            Increment = 1;
+            Font = new Font("Gorga Grotesque", (float)17.5, FontStyle.Regular);
+            BackColor = Color.FromArgb(66, 62, 58);
+            ForeColor = Color.FromArgb(156, 148, 144);
+            TextAlign = HorizontalAlignment.Center;
+            BorderStyle = BorderStyle.None;
+
+
+            this.Controls[1].Location = new Point(0, 0);
+        }
+    }
 
     class MyButton : Button
     {
-        public MyButton(string text, int x, int y, int width, int height)
+        public MyButton(string text, int x, int y, bool big)
         {
             this.Location = new Point(x, y);
-            this.Size = new Size(width, height);
+            if (big)
+                this.Size = new Size(119, 61);
+            else
+                this.Size = new Size(119, 30);
             this.BackColor = Color.FromArgb(66, 62, 58); 
             this.ForeColor = Color.FromArgb(156, 148, 144); 
             this.FlatStyle = FlatStyle.Flat;
             this.FlatAppearance.BorderSize = 0;
-            this.Font = new Font("Gorga Grotesque", 10, FontStyle.Regular);
+            this.Font = new Font("Gorga Grotesque", 11, FontStyle.Regular);
             this.Text = text;
         }
     }
 
     class MyComboBox : ComboBox
     {
-        public MyComboBox()
+        public MyComboBox(int x, int y)
         {
+            Location = new Point(x-1, y-1);
+            Size = new Size(121, 30);
+            FlatStyle = FlatStyle.Popup;
+            Font = new Font("Gorga Grotesque", 12, FontStyle.Regular);
+            BackColor = Color.FromArgb(66, 62, 58);
+            ForeColor = Color.FromArgb(156, 148, 144);
+
+
+            this.Items.Add("Random");
+            this.Items.Add("Rank");
+            this.Items.Add("Attack");
+            this.Items.Add("Center");
+            this.SelectedItem = "Random";
+
             this.DropDownStyle = ComboBoxStyle.DropDownList;
             this.DrawMode = DrawMode.OwnerDrawFixed;
             this.DrawItem += cbxDesign_DrawItem;
-            this.ItemHeight = 23;
-        }
+            this.ItemHeight = 26;
 
+
+            this.Region = new Region(new Rectangle(1, 1, this.Width - 1, this.Height - 2));
+        }
 
         private void cbxDesign_DrawItem(object sender, DrawItemEventArgs e)
         {

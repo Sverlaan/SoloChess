@@ -156,6 +156,7 @@ namespace SoloChess
             p_list = new List<(int, int, int, int)>();
         }
 
+
         public Instance(StreamReader sr)
         {
             string[] line = sr.ReadLine().Split();

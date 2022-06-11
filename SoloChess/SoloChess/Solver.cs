@@ -82,7 +82,10 @@ namespace SoloChess
 
             (bool found, LinkedList<string> sol, int nb) = SolveRecursive(puzzle.pieces.ToList(), new LinkedList<string>(), true);
             if (found)
+            {
+                visited.Clear();
                 return (sol, nb);
+            }
 
 
             ///////////
