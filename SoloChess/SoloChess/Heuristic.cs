@@ -19,16 +19,21 @@ namespace SoloChess
     {
         public float CalcValue(Move move, List<Piece> pieces)
         {
+            if (move.from.State == 1)
+                return 99 + move.to.Rank * move.to.CapturesLeft;
             return move.from.Rank + move.to.Rank * move.to.CapturesLeft;
         }
 
         public List<Move> SortByValue(List<Move> moves)
         {
-            return moves.OrderBy(m => m.Value).ToList();
+            return moves.OrderBy(x => x.Value).ThenBy(x => Guid.NewGuid()).ToList();
         }
 
         public override string ToString(){ return "RANK"; }
+
     }
+
+
 
     public class Attack : IHeuristic
     {
@@ -54,11 +59,12 @@ namespace SoloChess
 
         public List<Move> SortByValue(List<Move> moves)
         {
-            return moves.OrderByDescending(m => m.Value).ToList();
+            return moves.OrderByDescending(x => x.Value).ThenBy(x => Guid.NewGuid()).ToList();
         }
 
 
         public override string ToString(){ return "ATTACK"; }
+
     }
 
 
@@ -78,12 +84,12 @@ namespace SoloChess
 
         public List<Move> SortByValue(List<Move> moves)
         {
-            return moves.OrderByDescending(m => m.Value).ToList();
+            return moves.OrderByDescending(x => x.Value).ThenBy(x => Guid.NewGuid()).ToList();
         }
 
         public float EuclideanDist(Square p, Square q)
         {
-            return (p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y);
+            return (p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y); 
         }
 
         public Square InitCenter(Piece[] pieces)
@@ -96,6 +102,7 @@ namespace SoloChess
         }
 
         public override string ToString(){ return "CENTER"; }
+
     }
 
 
@@ -131,34 +138,7 @@ namespace SoloChess
         }
 
         public override string ToString(){ return "RANDOM"; }
+
     }
 
-
-
-
-    public class New : IHeuristic
-    {
-        IHeuristic heur1, heur2;
-
-        public New(Piece[] pieces)
-        {
-            heur1 = new Rank();
-            heur2 = new Center(pieces);
-        }
-
-        public float CalcValue(Move move, List<Piece> pieces)
-        {
-            return heur1.CalcValue(move, pieces) / heur2.CalcValue(move, pieces);
-        }
-
-        public List<Move> SortByValue(List<Move> moves)
-        {
-            return moves.OrderBy(m => m.Value).ToList();
-        }
-
-        public override string ToString()
-        {
-            return "COMBINED";
-        }
-    }
 }

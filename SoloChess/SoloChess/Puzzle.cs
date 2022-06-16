@@ -26,6 +26,7 @@ namespace SoloChess
             goal = false;
         }
 
+
         public void InitNodes()
         {
             void InitNodes2(List<Node> ordered)
@@ -67,8 +68,6 @@ namespace SoloChess
             grouped_squares = squares2.GroupBy(p => p.X - p.Y).Select(grp => grp.ToList()).ToList();
             foreach (List<Square> l in grouped_squares)
                 InitNodes2(l.OrderBy(p => p.X + p.Y).Select(n => n.bids.dig2).ToList());
-
-            
         }
          
 
@@ -107,7 +106,6 @@ namespace SoloChess
                     return new Pawn(s, c);
             }
         }
-
 
         public void MoveVertex(Piece p, Piece q)
         {

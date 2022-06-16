@@ -68,14 +68,14 @@ namespace SoloChess
 
     public class King : Piece
     {
-        public override int Rank { get => 9999; }
+        public override int Rank { get => 0; }
         public override int State { get => 1; }
 
         public King(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.CapturesLeft <= 0)
+            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
                 return false;
 
             return Math.Abs(this.Square.X - p.Square.X) <= 1 && Math.Abs(this.Square.Y - p.Square.Y) <= 1;
@@ -99,7 +99,7 @@ namespace SoloChess
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.CapturesLeft <= 0)
+            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -110,16 +110,6 @@ namespace SoloChess
             else if (Math.Abs(s2.X - s1.X) == 2 && Math.Abs(s2.Y - s1.Y) == 1)
                 return true;
 
-            /*
-            if (s2.Y == s1.Y - 2 && (s2.X == s1.X - 1 || s2.X == s1.X + 1))
-                return true;
-            else if (s2.Y == s1.Y + 2 && (s2.X == s1.X - 1 || s2.X == s1.X + 1))
-                return true;
-            else if (s2.X == s1.X - 2 && (s2.Y == s1.Y - 1 || s2.Y == s1.Y + 1))
-                return true;
-            else if (s2.X == s1.X + 2 && (s2.Y == s1.Y - 1 || s2.Y == s1.Y + 1))
-                return true;
-            */
             return false;
         }
 
@@ -141,7 +131,7 @@ namespace SoloChess
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.CapturesLeft <= 0)
+            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -201,7 +191,7 @@ namespace SoloChess
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.CapturesLeft <= 0)
+            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -229,7 +219,7 @@ namespace SoloChess
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.CapturesLeft <= 0)
+            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -256,7 +246,7 @@ namespace SoloChess
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || this.CapturesLeft <= 0)
+            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;

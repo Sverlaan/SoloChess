@@ -82,10 +82,7 @@ namespace SoloChess
 
             (bool found, LinkedList<string> sol, int nb) = SolveRecursive(puzzle.pieces.ToList(), new LinkedList<string>(), true);
             if (found)
-            {
-                visited.Clear();
                 return (sol, nb);
-            }
 
 
             ///////////
@@ -120,12 +117,12 @@ namespace SoloChess
                 int old_index_places_p = p.index_places;
                 p.index_places = q.index_places;
 
+                
                 if (!visited.SeenBefore(places))
                 {
                     (bool solution_found, LinkedList<string> sol, int nb) = SolveRecursive(pieces, plan, forward_check);
                     if (solution_found)
                         return (true, sol, nb);
-
                 }
 
                 nBacktracks++;  // of alleen na recursieve aanroep?
@@ -155,6 +152,10 @@ namespace SoloChess
 
             foreach (Piece p in pieces)
             {
+                // Check if King fixed NEWFUN
+                if (p.State == 1 && p.CapturesLeft == 0)
+                    return new List<Move>();
+
                 p.out_moves = new List<Move>();
                 p.in_moves = new List<Move>();
             }
@@ -186,7 +187,6 @@ namespace SoloChess
                 foreach (Piece p in pieces)
                     if (p.out_moves.Count == 0 && p.in_moves.Count == 0 && p.Square.bids.Empty() && p.possible_knight_attack == 0)
                         return new List<Move>();
-
 
             return heur_fun.SortByValue(valid_moves);
         }

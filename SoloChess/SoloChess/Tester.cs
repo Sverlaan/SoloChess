@@ -22,6 +22,41 @@ namespace SoloChess
         }
 
 
+        public static void GetChar()
+        {
+            Console.WriteLine($"CALCULATE ALL PUZZLE Ranks");
+            nfi.NumberDecimalSeparator = ".";
+
+            StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\characteristicsNEW.csv", true);
+
+
+            for (int diff = 2; diff <= 14; diff++)
+            {
+                string dirname = input_folder + $"\\level{diff.ToString("D2")}";
+                List<string> fileName = Directory.GetFiles(dirname).ToList();
+
+                for (int i = 0; i < 1000; i++)
+                {
+                    string file = fileName[i];
+                    Instance inst;
+                    using (StreamReader sr = new StreamReader(file))
+                        inst = new Instance(sr);
+
+                    Puzzle puzzle = new Puzzle(inst);
+                    StringBuilder sb = new StringBuilder();
+                    foreach (Piece p in puzzle.pieces)
+                        if (p.State != 1)
+                            sb.Append(p.Rank);
+
+                    sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + puzzle.pieces.Length + "," + sb.ToString());
+                }
+            }
+
+            sw.Close();
+        }
+
+
+
 
         public static void TestRandom(int diff, int from, int to)
         {
@@ -30,9 +65,6 @@ namespace SoloChess
 
             string dirname = input_folder + $"\\level{diff.ToString("D2")}";
             List<string> fileName = Directory.GetFiles(dirname).ToList();
-
-            //StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\random{diff}_{from}_{to}.csv", true);
-            StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\random13-14.csv", true);
 
             DateTime dt = DateTime.Now;
             float length = to - from + 1;
@@ -47,51 +79,46 @@ namespace SoloChess
 
                 (int random_bt, double time) = SolveIt(inst, 100, "Random");
 
+                StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\randomNEW{diff}_{from}_{to}.csv", true);
                 sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + random_bt + "," + time.ToString(nfi));
+                sw.Close();
 
                 Console.WriteLine((progress / length) * 100 + " %");
                 progress++;
             }
             Console.WriteLine("TOTAL TIME (s): \t " + (DateTime.Now - dt).Seconds);
-            sw.Close();
         }
 
+        
+
+        
+
+        
 
 
-
-
-        public static void TestHeur(int diff, int from, int to)
+        public static void TestHeur(int diff, int from, int to, string heurist, string f)
         {
             Console.WriteLine($"TESTING LEVEL {diff} from {from} to {to}");
             nfi.NumberDecimalSeparator = ".";
 
+            StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\{f}", true); // filename
+
             string dirname = input_folder + $"\\level{diff.ToString("D2")}";
             List<string> fileName = Directory.GetFiles(dirname).ToList();
 
-            StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\heur{diff}_{from}_{to}.csv", true);
-
-            DateTime dt = DateTime.Now;
-            float length = to - from + 1;
-            int progress = 1;
-
-            for (int i = from -1; i < to; i++)
+            for (int i = 0; i < fileName.Count; i++)
             {
                 string file = fileName[i];
                 Instance inst;
                 using (StreamReader sr = new StreamReader(file))
                     inst = new Instance(sr);
 
-                (int rank_bt, double rank_time) = SolveIt(inst, 1, "Rank");
-                (int attack_bt, double attack_time) = SolveIt(inst, 1, "Attack");
-                (int center_bt, double center_time) = SolveIt(inst, 1, "Center");
+                (int bt, double time) = SolveIt(inst, 1, heurist); // 1, heur
 
-                string id = Path.GetFileNameWithoutExtension(file);
-                sw.WriteLine(id + "," + rank_bt + "," + attack_bt + "," + center_bt + "," + rank_time.ToString(nfi) + "," + attack_time.ToString(nfi) + "," + center_time.ToString(nfi));
-
-                Console.WriteLine((progress / length) * 100 + " %");
-                progress++;
+                
+                sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + bt + "," + time.ToString(nfi));
             }
-            Console.WriteLine("TOTAL TIME (s): \t " + (DateTime.Now - dt).Seconds);
+
             sw.Close();
         }
 

@@ -56,7 +56,6 @@
     <Compile Include="Generator.cs" />
     <Compile Include="Heuristic.cs" />
     <Compile Include="Move.cs" />
-    <Compile Include="MovesArray.cs" />
     <Compile Include="Piece.cs" />
     <Compile Include="Tester.cs" />
     <Compile Include="VisitedSet.cs" />

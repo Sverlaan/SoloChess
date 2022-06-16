@@ -16,12 +16,19 @@ namespace SoloChess
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new ChessForm());
+            //Application.EnableVisualStyles();
+            //Application.SetCompatibleTextRenderingDefault(false);
+            //Application.Run(new ChessForm());
 
-            //Tester.TestRandom(13, 1, 1000);
-            //Tester.TestRandom(14, 1, 1000);
+            //Tester.GetChar();
+
+            for(int i = 2; i <= 14; i++)
+            {
+                Tester.TestRandom(i, 0, 1000);
+            }
+
+            Tester.TestRandom(12, 0, 1000);
+
         }
 
     }
