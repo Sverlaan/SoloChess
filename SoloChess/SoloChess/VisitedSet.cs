@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SoloChess
 {
-    
     public class VisistedSet
     {
         private HashSet<string> hashset;
@@ -19,10 +15,7 @@ namespace SoloChess
             sb = new StringBuilder();
         }
 
-        public void Add(string hash)
-        {
-            hashset.Add(hash);
-        }
+        public void Add(string hash){ hashset.Add(hash); }
         
         public bool SeenBefore(Piece[] pieces)
         {
@@ -39,17 +32,13 @@ namespace SoloChess
             foreach (Piece p in pieces)
             {
                 if (p == null)
-                    sb.Append("e");
+                    sb.Append("0");
                 else
                     sb.Append(p.State + "" + p.CapturesLeft);
             }
             return sb.ToString();
         }
 
-
-        public void Clear()
-        {
-            hashset = new HashSet<string>();
-        }
+        public void Clear(){ hashset = new HashSet<string>(); }
     }
 }

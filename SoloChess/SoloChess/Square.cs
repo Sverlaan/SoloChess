@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SoloChess
 {
-    
     public class Square
     {
         public int X { get; set; }
         public int Y { get; set; }
 
         public BlockingInfoDS bids;
+
         public Square(int x, int y)
         {
             this.X = x;

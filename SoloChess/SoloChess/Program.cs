@@ -18,9 +18,8 @@ namespace SoloChess
         {
             //Application.EnableVisualStyles();
             //Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new ChessForm());
+            Application.Run(new ChessForm());
 
-            //Tester.GetChar();
             /*
             for(int i = 4; i <= 14; i++)
             {

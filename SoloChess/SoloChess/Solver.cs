@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SoloChess
 {
-    
-    internal class Solver
+    public class Solver
     {
         Puzzle puzzle;
 
@@ -44,6 +41,9 @@ namespace SoloChess
             }
         }
 
+
+
+
         public Piece[] InitPlaces(Piece[] pieces)
         {
             Piece[] arr = new Piece[pieces.Length];
@@ -60,12 +60,13 @@ namespace SoloChess
 
         public bool GoalState(List<Piece> pieces)
         {
+            // Check whether the last piece is a King
             return pieces.Count == 1 && pieces[0].State == 1;
         }
 
-
         public void OutputPlan(LinkedList<string> plan)
         {
+            // Output the solution found
             Console.WriteLine($"SOLUTION FOUND using {heur_fun.ToString()} heuristic after {nBacktracks} BACKTRACKS");
             foreach (string move in plan)
                 Console.WriteLine(move);
@@ -77,15 +78,16 @@ namespace SoloChess
 
         public (LinkedList<string>, int) Solve(Puzzle puzzle)
         {
+            // Reset
             visited.Clear();
             this.nBacktracks = 0;
 
-            (bool found, LinkedList<string> sol, int nb) = SolveRecursive(puzzle.pieces.ToList(), new LinkedList<string>(), true);
+            // Solve
+            (bool found, LinkedList<string> plan, int nb) = SolveRecursive(puzzle.pieces.ToList(), new LinkedList<string>(), true);
             if (found)
-                return (sol, nb);
+                return (plan, nb);
 
-
-            ///////////
+            /////////////////////////////////////
             Console.WriteLine("NO SOLUTION FOUND");
             throw new Exception();
         }
@@ -93,10 +95,8 @@ namespace SoloChess
 
         public (bool, LinkedList<string>, int) SolveRecursive(List<Piece> pieces, LinkedList<string> plan, bool forward_check)
         {
-
             if (GoalState(pieces))
                 return (true, plan, nBacktracks);
-
 
             foreach (Move move in GeneratePossibleMoves(pieces, forward_check))
             {
@@ -125,7 +125,7 @@ namespace SoloChess
                         return (true, sol, nb);
                 }
 
-                nBacktracks++;  // of alleen na recursieve aanroep?
+                nBacktracks++;
 
                 places[q.index_places] = q;
                 places[old_index_places_p] = p;

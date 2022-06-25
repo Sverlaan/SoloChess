@@ -1,70 +1,58 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 using System.Windows.Forms;
 using System.IO;
-using System.ComponentModel;
 
 namespace SoloChess
 {
     public class ChessForm : Form
     {
-        ChessBoard board;
-        MyButton input_button, generate_button, restart_button, solve_button;
-        MyNumericUpDown nup;
-        MyComboBox cb;
+        private ChessBoard board;
+        private MyButton input_button, generate_button, restart_button, solve_button;
+        private MyNumericUpDown nup;
+        private MyComboBox cb;
 
-        int marge_small = 1;
-        int marge_big = 30;
+        private Control[] controls;
 
+        private int marge_small = 1;
+        private int marge_big = 30;
 
         public ChessForm()
         {
             // Form settings
             this.Size = new Size(558, 670);
             this.Text = "Solo Chess";
-            //this.Icon = Properties.Resources.logo;
+            this.Icon = Properties.Resources.chesslogo;
             this.BackColor = Color.FromArgb(88, 85, 80);
             this.DoubleBuffered = true;
 
             // Canvas for drawing the board
-            board = new ChessBoard(new Puzzle(Generator.GenValidInstance(5)));
+            board = new ChessBoard(new Puzzle(Generator.GenValidInstance(12)));
             board.Location = new Point(marge_big + marge_small, marge_big + marge_small);
             
+            // Controls
             input_button = new MyButton("Input", board.Left, board.Bottom + marge_small + marge_big, true);
             restart_button = new MyButton("Restart", input_button.Right + marge_small, input_button.Top, true);
             generate_button = new MyButton("Generate", restart_button.Right + marge_small, restart_button.Top, false);
             solve_button = new MyButton("Solve", restart_button.Right + marge_small, generate_button.Bottom + marge_small, false);
-
             nup = new MyNumericUpDown(generate_button.Right, generate_button.Top);
-
             cb = new MyComboBox(solve_button.Right, solve_button.Top);
             
-            
-
             // Events
-            this.Paint += DrawForm;
             input_button.Click += ChooseInput;
             restart_button.Click += RestartGame;
             solve_button.Click += SolveGame;
             generate_button.Click += NewGame;
 
             // Add controls
-            Controls.AddRange(new Control[] { board, input_button, restart_button, solve_button, generate_button, nup, cb });
+            controls = new Control[] { board, input_button, restart_button, solve_button, generate_button, nup, cb };
+            Controls.AddRange(controls);
         }
 
-        private void DrawForm(object sender, PaintEventArgs pea)
+        private void ChooseInput(object sender, EventArgs ea)
         {
-            // Draw the edge of the playboard
-            //Brush brush = new SolidBrush(Color.FromArgb(120, 120, 120));
-            //pea.Graphics.FillRectangle(brush, board.Location.X - marge_small, board.Location.Y - marge_small, board.Width + marge_small * 2, board.Height + marge_small * 2);
-        }
-
-        public void ChooseInput(object sender, EventArgs ea)
-        {
+            // Choose input file of instance
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Filter = "Tekstfiles|*.txt";
             dialog.Title = "Open input configuration file...";
@@ -73,18 +61,18 @@ namespace SoloChess
                 board.NewGame(new StreamReader(dialog.FileName));
         }
 
-        public void NewGame(object sender, EventArgs ea){ board.NewGame((int)nup.Value); }
+        private void NewGame(object sender, EventArgs ea){ board.NewGame((int)nup.Value); }
 
-        public void RestartGame(object sender, EventArgs ea){ board.Restart(); }
+        private void RestartGame(object sender, EventArgs ea){ board.Restart(); }
 
-        public void SolveGame(object sender, EventArgs ea) { board.Solve((string)cb.SelectedItem); }
+        private void SolveGame(object sender, EventArgs ea) { board.Solve((string)cb.SelectedItem); }
     }
 
 
     public class ChessBoard : Panel
     {
         private Puzzle game;
-        private Piece clicked, sol_from, sol_to;
+        private Piece clicked, arrow_from, arrow_to;
         private Timer animation;
         private LinkedListNode<string> current_move, start_move;
         private int counter;
@@ -141,11 +129,11 @@ namespace SoloChess
                 }
 
             // Draw arrow used in solution visualisation
-            if (counter % 2 == 0 && sol_from != null && sol_to != null)
+            if (counter % 2 == 0 && arrow_from != null && arrow_to != null)
             {
                 Pen p = new Pen(color_attacked, 10);
                 p.EndCap = System.Drawing.Drawing2D.LineCap.ArrowAnchor;
-                gr.DrawLine(p, (float)(sol_from.Square.X * cellsize + 0.5 * cellsize), (float)(sol_from.Square.Y * cellsize + 0.5 * cellsize), (float)(sol_to.Square.X * cellsize + 0.5 * cellsize), (float)(sol_to.Square.Y * cellsize + 0.5 * cellsize));
+                gr.DrawLine(p, (float)(arrow_from.Square.X * cellsize + 0.5 * cellsize), (float)(arrow_from.Square.Y * cellsize + 0.5 * cellsize), (float)(arrow_to.Square.X * cellsize + 0.5 * cellsize), (float)(arrow_to.Square.Y * cellsize + 0.5 * cellsize));
             }
                 
             // Draw cell indices
@@ -223,6 +211,7 @@ namespace SoloChess
         public void Solve(string heur)
         {
             // Construct solution and start animation
+            Restart();
             Solver solver = new Solver(game, heur);
             (LinkedList<string> sol, int bt) = solver.Solve(game);
             solver.OutputPlan(sol);
@@ -254,12 +243,12 @@ namespace SoloChess
             {
                 // Execute move
                 if (current_move != start_move)
-                    game.MoveVertex(sol_from, sol_to);
+                    game.MoveVertex(arrow_from, arrow_to);
 
                 if (current_move != null)
                 {
                     // Get next move to animate
-                    (sol_from, sol_to) = ParseMove(current_move.Value);
+                    (arrow_from, arrow_to) = ParseMove(current_move.Value);
                     current_move = current_move.Next;
                 }
                 else
@@ -293,6 +282,8 @@ namespace SoloChess
         private void ResetClicked(){ clicked = null; } // Unhighlight
     }
 
+
+
     class MyNumericUpDown : NumericUpDown
     {
         public MyNumericUpDown(int x, int y)
@@ -308,11 +299,10 @@ namespace SoloChess
             ForeColor = Color.FromArgb(156, 148, 144);
             TextAlign = HorizontalAlignment.Center;
             BorderStyle = BorderStyle.None;
-
-
             this.Controls[1].Location = new Point(0, 0);
         }
     }
+
 
     class MyButton : Button
     {
@@ -332,6 +322,7 @@ namespace SoloChess
         }
     }
 
+
     class MyComboBox : ComboBox
     {
         public MyComboBox(int x, int y)
@@ -342,7 +333,6 @@ namespace SoloChess
             Font = new Font("Gorga Grotesque", 12, FontStyle.Regular);
             BackColor = Color.FromArgb(66, 62, 58);
             ForeColor = Color.FromArgb(156, 148, 144);
-
 
             this.Items.Add("Random");
             this.Items.Add("Rank");
@@ -355,10 +345,12 @@ namespace SoloChess
             this.DrawItem += cbxDesign_DrawItem;
             this.ItemHeight = 26;
 
-
             this.Region = new Region(new Rectangle(1, 1, this.Width - 1, this.Height - 2));
         }
 
+
+        // Containing code from user Martin Braun on StackOverflow.com
+        // see: https://stackoverflow.com/questions/11817062/align-text-in-combobox
         private void cbxDesign_DrawItem(object sender, DrawItemEventArgs e)
         {
             // By using Sender, one method could handle multiple ComboBoxes
