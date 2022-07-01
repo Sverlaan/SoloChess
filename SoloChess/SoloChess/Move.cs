@@ -1,29 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace SoloChess
 {
     public class Move
     {
-        public Piece from, to;
-        public float Value;
-        public int arrLoc;
-        private string[] states = new string[] { "", "K", "Q", "R", "B", "N", "P" };
+        public Piece from, to;   // Move represents capture of piece "to" by piece "from"
+        public float Value;      // Heuristic value of move
+
+        private string[] types = new string[] { "", "K", "Q", "R", "B", "N", "P" };  // Used in converting move to string
 
         public Move(Piece p, Piece q)
         {
             this.from = p;
             this.to = q;
-            arrLoc = -1;
         }
 
         public override string ToString()
         {
-            return states[from.State] + from.Square.X.ToString() + from.Square.Y.ToString()
-                + "x" + states[to.State] + to.Square.X.ToString() + to.Square.Y.ToString();
+            return types[from.TypeID] + from.Square.X.ToString() + from.Square.Y.ToString()
+                + "x" + types[to.TypeID] + to.Square.X.ToString() + to.Square.Y.ToString();
         }
     }
 }

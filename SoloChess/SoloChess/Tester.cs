@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.Globalization;
 
@@ -13,6 +12,7 @@ namespace SoloChess
         private static string input_folder = path.Substring(0, path.LastIndexOf("bin")) + "inputs";
         private static NumberFormatInfo nfi = new NumberFormatInfo();
 
+
         public static void Generate(int from, int to, int n)
         {
             // Generates n puzzles of all difficulty levels between from and to
@@ -20,13 +20,14 @@ namespace SoloChess
                 Generator.WriteInputs(n, i, input_folder);
         }
 
+
         public static void GetPieceTypeDistribution()
         {
             Console.WriteLine($"GET PIECE TYPE DISTRIBUTION OF ALL PUZZLES");
             nfi.NumberDecimalSeparator = ".";
             StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\characteristicsNEW.csv", true);
 
-            // For all difficulties
+            // For all difficulty levels
             for (int diff = 2; diff <= 14; diff++)
             {
                 string dirname = input_folder + $"\\level{diff.ToString("D2")}";
@@ -41,15 +42,12 @@ namespace SoloChess
                     using (StreamReader sr = new StreamReader(file))
                         inst = new Instance(sr);
 
-                    // Get all piece types on the board, with the exception of the King
+                    // Get all piece types on the board
                     Puzzle puzzle = new Puzzle(inst);
-                    StringBuilder sb = new StringBuilder();
-                    foreach (Piece p in puzzle.pieces)
-                        if (p.State != 1)
-                            sb.Append(p.Rank);
+                    string piece_types = puzzle.GetPieceTypes();
 
                     // Write to output file
-                    sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + puzzle.pieces.Length + "," + sb.ToString());
+                    sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + puzzle.pieces.Length + "," + piece_types);
                 }
             }
             sw.Close();
@@ -64,6 +62,7 @@ namespace SoloChess
             string dirname = input_folder + $"\\level{diff.ToString("D2")}";
             List<string> fileName = Directory.GetFiles(dirname).ToList();
 
+            DateTime dt = DateTime.Now;
             int length = to - from + 1;
             int progress = 0;
 
@@ -87,9 +86,11 @@ namespace SoloChess
                 progress++;
                 Console.WriteLine((progress / (float)length) * 100 + " %");
             }
+            Console.WriteLine("TOTAL TIME (s): \t " + (DateTime.Now - dt).Seconds);
         }
 
-        static (int, double) SolveIt(Instance inst, int n, string heur)
+
+        private static (int, double) SolveIt(Instance inst, int n, string heur)
         {
             // Solve given instance n times using heur
             DateTime dt = DateTime.Now;
@@ -107,83 +108,6 @@ namespace SoloChess
             double time = (DateTime.Now - dt).TotalMilliseconds / n;
             return (backtracks, time);
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        public static void TestRandom(int diff, int from, int to)
-        {
-            Console.WriteLine($"TESTING LEVEL {diff} from {from} to {to}");
-            nfi.NumberDecimalSeparator = ".";
-
-            string dirname = input_folder + $"\\level{diff.ToString("D2")}";
-            List<string> fileName = Directory.GetFiles(dirname).ToList();
-
-            DateTime dt = DateTime.Now;
-            float length = to - from + 1;
-            int progress = 1;
-
-            for (int i = from - 1; i < to; i++)
-            {
-                string file = fileName[i];
-                Instance inst;
-                using (StreamReader sr = new StreamReader(file))
-                    inst = new Instance(sr);
-
-                // Solve puzzle instance 100 times using
-                (int random_bt, double time) = SolveIt(inst, 100, "Random");
-
-                StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\randomNEW{diff}_{from}_{to}.csv", true);
-                sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + random_bt + "," + time.ToString(nfi));
-                sw.Close();
-
-                Console.WriteLine((progress / length) * 100 + " %");
-                progress++;
-            }
-            Console.WriteLine("TOTAL TIME (s): \t " + (DateTime.Now - dt).Seconds);
-        }
-
-        
-        public static void TestHeur(int diff, int from, int to, string heurist, string f)
-        {
-            Console.WriteLine($"TESTING LEVEL {diff} from {from} to {to}");
-            nfi.NumberDecimalSeparator = ".";
-
-            StreamWriter sw = new StreamWriter(path.Substring(0, path.LastIndexOf("bin")) + $"results\\{f}", true); // filename
-
-            string dirname = input_folder + $"\\level{diff.ToString("D2")}";
-            List<string> fileName = Directory.GetFiles(dirname).ToList();
-
-            for (int i = 0; i < fileName.Count; i++)
-            {
-                string file = fileName[i];
-                Instance inst;
-                using (StreamReader sr = new StreamReader(file))
-                    inst = new Instance(sr);
-
-                (int bt, double time) = SolveIt(inst, 1, heurist); // 1, heur
-
-                
-                sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + bt + "," + time.ToString(nfi));
-            }
-
-            sw.Close();
-        }
-
-
-        
 
     }
 }

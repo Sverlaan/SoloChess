@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.IO;
-using System.Timers;
 
 namespace SoloChess
 {
@@ -16,16 +11,7 @@ namespace SoloChess
         [STAThread]
         static void Main()
         {
-            //Application.EnableVisualStyles();
-            //Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new ChessForm());
-
-            /*
-            for(int i = 4; i <= 14; i++)
-            {
-                Tester.TestHeur(i, 1, 1000, "Center", "center4-14NEWWWWWWWWWWW");
-            }
-            */
         }
 
     }

@@ -1,16 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Security.Cryptography;
 
 namespace SoloChess
 {
     public interface IHeuristic
     {
-        float CalcValue(Move move, List<Piece> pieces);
-        List<Move> SortByValue(List<Move> moves);
+        float CalcValue(Move move, List<Piece> pieces);  // Function for calculating the heuristic value of a move
+        List<Move> SortByValue(List<Move> moves);        // Function for sorting the moves by heuristic value
     }
 
     
@@ -19,8 +17,10 @@ namespace SoloChess
     {
         public float CalcValue(Move move, List<Piece> pieces)
         {
-            if (move.from.State == 1)
-                return 99 + move.to.Rank * move.to.CapturesLeft;
+            if (move.from.TypeID == 1)
+                return 99 + move.to.Rank * move.to.CapturesLeft;  // Rank of King is supposed to be 99 in the context of this heuristic
+
+            // Calculate difference in total rank, before and after move
             return move.from.Rank + move.to.Rank * move.to.CapturesLeft;
         }
 
@@ -30,7 +30,6 @@ namespace SoloChess
         }
 
         public override string ToString(){ return "RANK"; }
-
     }
 
 
@@ -47,6 +46,7 @@ namespace SoloChess
             Square p_old_square = p.Square;
             p.Square = q.Square;
 
+            // Get number of possible attacks for p after the potential move
             foreach(Piece piece in pieces)
                 if (piece != p && piece != q)
                     if (p.ValidCapture(piece))
@@ -54,6 +54,7 @@ namespace SoloChess
 
             p.Square = p_old_square;
 
+            // Difference in total number of possible moves, before and after move
             return p_out_aftermove - p.out_moves.Count - q.out_moves.Count - p.in_moves.Count;
         }
 
@@ -61,7 +62,6 @@ namespace SoloChess
         {
             return moves.OrderByDescending(x => x.Value).ThenBy(x => Guid.NewGuid()).ToList();
         }
-
 
         public override string ToString(){ return "ATTACK"; }
 
@@ -94,8 +94,9 @@ namespace SoloChess
 
         public Square InitCenter(Piece[] pieces)
         {
+            // Initialize center to be the King's square
             foreach (Piece p in pieces)
-                if (p.State == 1)
+                if (p.TypeID == 1)
                     return p.Square;
 
             return null;
@@ -109,6 +110,13 @@ namespace SoloChess
 
     public class Randomized : IHeuristic
     {
+        static RNGCryptoServiceProvider provider;
+
+        public Randomized()
+        {
+            provider = new RNGCryptoServiceProvider();
+        }
+
         public float CalcValue(Move move, List<Piece> pieces)
         {
             return 0;
@@ -116,13 +124,15 @@ namespace SoloChess
 
         public List<Move> SortByValue(List<Move> moves)
         {
+            // Shuffle the moves randomly
             Shuffle(moves);
             return moves;
         }
 
+        // Containing code from user Uwe Keim on StackOverflow.com
+        // see: https://stackoverflow.com/questions/273313/randomize-a-listt
         public static void Shuffle(IList<Move> list)
         {
-            RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
             int n = list.Count;
             while (n > 1)
             {

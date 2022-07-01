@@ -9,7 +9,7 @@ namespace SoloChess
         private StringBuilder sb;
         bool seen_before;
 
-        public VisistedSet(Piece[] pieces)
+        public VisistedSet()
         {
             hashset = new HashSet<string>();
             sb = new StringBuilder();
@@ -19,14 +19,14 @@ namespace SoloChess
         
         public bool SeenBefore(Piece[] pieces)
         {
-            string hash = Hash(pieces);
-            seen_before = hashset.Contains(hash);
+            string prehash = PreHash(pieces);
+            seen_before = hashset.Contains(prehash);
             if (!seen_before)
-                hashset.Add(hash);
+                hashset.Add(prehash);
             return seen_before;
         }
 
-        public string Hash(Piece[] pieces)
+        public string PreHash(Piece[] pieces)
         {
             sb.Clear();
             foreach (Piece p in pieces)
@@ -34,7 +34,7 @@ namespace SoloChess
                 if (p == null)
                     sb.Append("0");
                 else
-                    sb.Append(p.State + "" + p.CapturesLeft);
+                    sb.Append(p.TypeID + "" + p.CapturesLeft);
             }
             return sb.ToString();
         }

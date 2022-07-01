@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Drawing;
 
 namespace SoloChess
@@ -10,13 +7,13 @@ namespace SoloChess
 
     public abstract class Piece
     {
-        public abstract int State { get;}
+        public abstract int TypeID { get;}   // int that corresponds to its type
 
-        public List<Move> in_moves;
-        public List<Move> out_moves;
+        public List<Move> in_moves;    // Moves in which piece is captured, incoming edges
+        public List<Move> out_moves;   // Moves in which piece is capturing, outgoing edges
 
-        public int possible_knight_attack;
-        public int index_places;
+        public int possible_knight_attack;  // Used in forward checking, when generating possible moves
+        public int index_places;            // Used in efficiently hashing, to keep track of visited states
 
         public abstract int Rank { get; }
         public Square Square {get; set;}
@@ -31,21 +28,21 @@ namespace SoloChess
             CapturesLeft = c;
             in_moves = new List<Move>();
             out_moves = new List<Move>();
-
             possible_knight_attack = 0;
         }
 
-
-        
-
-
-
-
+        // Function for checking whether piece is in a postion to capture a specified piece
+        // This is piece type dependent and according to chess movement rules
         public abstract bool ValidCapture(Piece p);
+
+        // Function for calculating square positions from which piece can reached its current square, used in instance generation
+        // This is piece type dependent and according to chess movement rules
         public abstract List<(int, int)> CalcList();
 
         public virtual List<(int, int)> GetOptions(Piece[,] grid)
         {
+            // Wrapper function which incorporates CalcList
+            // Returns the list of square positions which are valid options
             List<(int, int)> options_for_piece = new List<(int, int)>();
             List<(int, int)> temp_options = CalcList();
 
@@ -58,6 +55,7 @@ namespace SoloChess
 
         public virtual bool ValidOption(int x, int y, Piece[,] grid)
         {
+            // Square option for expansion is valid iff it is within the range of the grid and is currently unoccupied
             if (x >= 0 && x < grid.GetLength(0) && y >= 0 && y < grid.GetLength(1) && grid[x, y] == null)
                 return true;
             return false;
@@ -69,13 +67,13 @@ namespace SoloChess
     public class King : Piece
     {
         public override int Rank { get => 0; }
-        public override int State { get => 1; }
+        public override int TypeID { get => 1; }
 
         public King(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
+            if (this == p || p.TypeID == 1 || this.CapturesLeft <= 0)
                 return false;
 
             return Math.Abs(this.Square.X - p.Square.X) <= 1 && Math.Abs(this.Square.Y - p.Square.Y) <= 1;
@@ -86,7 +84,6 @@ namespace SoloChess
             return new List<(int, int)> { (this.Square.X - 1, this.Square.Y - 1), (this.Square.X - 1, this.Square.Y), (this.Square.X - 1, this.Square.Y + 1), (this.Square.X, this.Square.Y - 1), (this.Square.X, this.Square.Y + 1), (this.Square.X + 1, this.Square.Y - 1), (this.Square.X + 1, this.Square.Y), (this.Square.X + 1, this.Square.Y + 1) };
         }
 
-
         public override Image FigureW { get => Properties.Resources.kingW; }
         public override Image FigureB { get => Properties.Resources.kingB; }
     }
@@ -94,12 +91,12 @@ namespace SoloChess
     public class Knight : Piece
     {
         public override int Rank { get => 3; }
-        public override int State { get => 5; }
+        public override int TypeID { get => 5; }
         public Knight(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
+            if (this == p || p.TypeID == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -126,12 +123,12 @@ namespace SoloChess
     public class Pawn : Piece
     {
         public override int Rank { get => 1; }
-        public override int State { get => 6; }
+        public override int TypeID { get => 6; }
         public Pawn(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
+            if (this == p || p.TypeID == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -186,12 +183,12 @@ namespace SoloChess
     public class Queen : SlidingPiece
     {
         public override int Rank { get => 9; }
-        public override int State { get => 2; }
+        public override int TypeID { get => 2; }
         public Queen(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
+            if (this == p || p.TypeID == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -214,12 +211,12 @@ namespace SoloChess
     public class Rook : SlidingPiece
     {
         public override int Rank { get => 5; }
-        public override int State { get => 3; }
+        public override int TypeID { get => 3; }
         public Rook(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
+            if (this == p || p.TypeID == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;
@@ -241,12 +238,12 @@ namespace SoloChess
     public class Bishop : SlidingPiece
     {
         public override int Rank { get => 5; }
-        public override int State { get => 4; }
+        public override int TypeID { get => 4; }
         public Bishop(Square s, int c) : base(s, c) { }
 
         public override bool ValidCapture(Piece p)
         {
-            if (this == p || p.State == 1 || this.CapturesLeft <= 0)
+            if (this == p || p.TypeID == 1 || this.CapturesLeft <= 0)
                 return false;
 
             Square s1 = this.Square;

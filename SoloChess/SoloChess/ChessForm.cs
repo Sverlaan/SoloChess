@@ -154,7 +154,7 @@ namespace SoloChess
             }
 
             // Draw string
-            if (game.goal)
+            if (game.goal_reached)
             {
                 StringFormat format = new StringFormat();
                 format.LineAlignment = StringAlignment.Center;

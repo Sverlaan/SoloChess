@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="Generator.cs" />
     <Compile Include="Heuristic.cs" />
+    <Compile Include="Instance.cs" />
     <Compile Include="Move.cs" />
     <Compile Include="Piece.cs" />
     <Compile Include="Tester.cs" />
