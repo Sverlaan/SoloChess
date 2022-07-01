@@ -65,7 +65,15 @@ namespace SoloChess
 
         private void RestartGame(object sender, EventArgs ea){ board.Restart(); }
 
-        private void SolveGame(object sender, EventArgs ea) { board.Solve((string)cb.SelectedItem); }
+        private void SolveGame(object sender, EventArgs ea) 
+        {
+            if (nup.Value > 14 && cb.SelectedItem == "Random")
+                MessageBox.Show("Solving puzzles consisting of more than 14 pieces using the Random-heuristic is currently not supported, since this may take a while.");
+            else if (nup.Value > 20)
+                MessageBox.Show("Solving puzzles consisting of more than 20 pieces is currently not supported, since this may take a while.");
+            else
+                board.Solve((string)cb.SelectedItem); 
+        }
     }
 
 
@@ -272,10 +280,19 @@ namespace SoloChess
         }
         public void NewGame(StreamReader sr) 
         { 
-            // Start new puzzle from input file
-            game = new Puzzle(new Instance(sr));
-            clicked = null;
-            this.Invalidate(); 
+            try
+            {
+                // Start new puzzle from input file
+                game = new Puzzle(new Instance(sr));
+                clicked = null;
+                this.Invalidate();
+            }
+            catch
+            {
+                MessageBox.Show("Something went wrong parsing the input file. The current game is restarted.");
+                this.Restart();
+            }
+            
         }
 
         private void SetClicked(Piece p) { clicked = p; }     // Highlight clicked piece
