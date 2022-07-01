@@ -25,7 +25,7 @@ remains. The rules are as follows:
 
 The difficulty increases as more and more pieces are added to the puzzles, and one
 must navigate the maze of captures and find the path that leads to a lone remaining
-piece. Note that a specific instance may have more than one solution. [Try it out here.](https://www.chess.com/solo-chess)
+piece. Note that a specific instance may have more than one solution. [Try it out here](https://www.chess.com/solo-chess).
 
 
 ## How the Program Works
