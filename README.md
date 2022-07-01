@@ -1,6 +1,6 @@
 # Solving Solo Chess
 This project is part of my bachelor thesis "Solving Solo Chess", which is made as a completion of my Bachelor education in Artificial Intelligence
-at Utrecht University. The paper is available *here*.
+at Utrecht University. The paper is available [here](/BachelorThesis_StanVerlaan6813526.pdf).
 
 ## About the Research
 In this thesis project, we study a simplified puzzle variant of the game of chess, termed
