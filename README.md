@@ -13,7 +13,7 @@ The following interactive components are available:
 * *Input*-Button: provides the possibility to open puzzle instances from textfiles. 
 
 ## Screenshot
-![screenshot](/screenshot.png)
+![screenshot](/screenshot.jpg)
 
 ## Author
 * Stan Verlaan
