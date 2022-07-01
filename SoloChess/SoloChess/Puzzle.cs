@@ -7,7 +7,7 @@ namespace SoloChess
     public class Puzzle
     {
         public Piece[,] grid;
-        public Piece[] pieces;
+        public List<Piece> pieces;
 
         public bool goal_reached;
         private int depth;          // used in checking whether goal state has been reached, for single player game play
@@ -19,7 +19,7 @@ namespace SoloChess
         {
             ParseInstance(instance);
             InitNodes();
-            depth = pieces.Length;
+            depth = pieces.Count;
             goal_reached = false;
         }
 
@@ -82,16 +82,14 @@ namespace SoloChess
             // Initialize
             this.start_config = instance;
             this.grid = new Piece[instance.width, instance.height];
-            this.pieces = new Piece[instance.n];
+            this.pieces = new List<Piece>();
 
             // Add pieces
-            int i = 0;
             foreach ((int p, int x, int y, int c) in instance.list_of_piece_information)
             {
                 Piece piece = ParsePieceType(p, new Square(x,y), c);
                 grid[x, y] = piece;
-                pieces[i] = piece;
-                i++;
+                pieces.Add(piece);
             }
         }
 
@@ -155,7 +153,7 @@ namespace SoloChess
             // Reset puzzle to start configuration
             ParseInstance(start_config);
             InitNodes();
-            depth = pieces.Length;
+            depth = pieces.Count;
             goal_reached = false;
         }
     }

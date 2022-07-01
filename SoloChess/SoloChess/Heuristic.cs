@@ -72,7 +72,7 @@ namespace SoloChess
     public class Center : IHeuristic
     {
         Square center;
-        public Center(Piece[] pieces)
+        public Center(List<Piece> pieces)
         {
             center = InitCenter(pieces);
         }
@@ -92,7 +92,7 @@ namespace SoloChess
             return (p.X - q.X) * (p.X - q.X) + (p.Y - q.Y) * (p.Y - q.Y); 
         }
 
-        public Square InitCenter(Piece[] pieces)
+        public Square InitCenter(List<Piece> pieces)
         {
             // Initialize center to be the King's square
             foreach (Piece p in pieces)

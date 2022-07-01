@@ -38,7 +38,7 @@ namespace SoloChess
         public Piece[] InitPlaces()
         {
             // Take over current ordering of pieces 
-            Piece[] arr = new Piece[this.puzzle.pieces.Length];
+            Piece[] arr = new Piece[this.puzzle.pieces.Count];
             for (int i = 0; i < arr.Length; i++)
             {
                 Piece p = this.puzzle.pieces[i];
@@ -72,7 +72,7 @@ namespace SoloChess
             this.nBacktracks = 0;
 
             // Solve
-            (bool found, LinkedList<string> plan, int nb) = SolveRecursive(puzzle.pieces.ToList(), new LinkedList<string>(), true);
+            (bool found, LinkedList<string> plan, int nb) = SolveRecursive(new LinkedList<string>());
             if (found)
                 return (plan, nb);
 
@@ -82,62 +82,74 @@ namespace SoloChess
         }
 
 
-        public (bool, LinkedList<string>, int) SolveRecursive(List<Piece> pieces, LinkedList<string> plan, bool forward_check)
+        public (bool, LinkedList<string>, int) SolveRecursive(LinkedList<string> plan)
         {
             // Solution found
-            if (GoalState(pieces))
+            if (GoalState(this.puzzle.pieces))
                 return (true, plan, nBacktracks);
 
-            foreach (Move move in GeneratePossibleMoves(pieces, forward_check))
+            foreach (Move move in GeneratePossibleMoves(this.puzzle.pieces))
             {
                 plan.AddLast(move.ToString());
 
                 Piece p = move.from;
                 Piece q = move.to;
-                Square old = p.Square;
 
-                // Execute Move
-                p.CapturesLeft--;
-                p.Square.bids.Remove();
-                p.Square = q.Square;
-                pieces.Remove(q);
-
-                // Update places used in string hasing
-                places[q.index_places] = p;
-                places[p.index_places] = null;
+                // Store old info that will be overwritten by new move
+                Square old_square_p = p.Square;
                 int old_index_places_p = p.index_places;
-                p.index_places = q.index_places;
 
+                // Perform move
+                ExecuteMove(p, q);
                 
                 if (!visited.SeenBefore(places))  // Only recurse if resulting state has not been explored before
                 {
-                    (bool solution_found, LinkedList<string> sol, int nb) = SolveRecursive(pieces, plan, forward_check);
+                    (bool solution_found, LinkedList<string> sol, int nb) = SolveRecursive(plan);
 
                     if (solution_found)
                         return (true, sol, nb);
                 }
 
-                nBacktracks++;
-
-                // Reset places
-                places[q.index_places] = q;
-                places[old_index_places_p] = p;
-                p.index_places = old_index_places_p;
-
-                // Undo move
-                pieces.Add(q);
+                // Restore state and backtrack
+                UndoMove(p, q, old_square_p, old_index_places_p);
                 plan.RemoveLast();
-                p.Square = old;
-                p.CapturesLeft++;
-                p.Square.bids.AddBack();
+                nBacktracks++;
             }
             
             // No solution found in this branch
             return (false, null, -9999);
         }
 
+        public void ExecuteMove(Piece p, Piece q)
+        {
+            // Execute Move
+            p.CapturesLeft--;
+            p.Square.bids.Remove();
+            p.Square = q.Square;
+            this.puzzle.pieces.Remove(q);
 
-        public List<Move> GeneratePossibleMoves(List<Piece> pieces, bool forward_check)
+            // Update places used in string hasing
+            places[q.index_places] = p;
+            places[p.index_places] = null;
+            p.index_places = q.index_places;
+        }
+
+        public void UndoMove(Piece p, Piece q, Square old_square_p, int old_index_places_p)
+        {
+            // Reset places used in string hashing
+            places[q.index_places] = q;
+            places[old_index_places_p] = p;
+            p.index_places = old_index_places_p;
+
+            // Undo move
+            this.puzzle.pieces.Add(q);
+            p.Square = old_square_p;
+            p.CapturesLeft++;
+            p.Square.bids.AddBack();
+        }
+
+
+        public List<Move> GeneratePossibleMoves(List<Piece> pieces)
         {
             // Create empty list of valid moves
             List<Move> valid_moves = new List<Move>();
@@ -183,10 +195,9 @@ namespace SoloChess
 
             // Return empty list of moves when one of the pieces is completely secluded
             // and not in a position to ever capture or become captured (state space reduction)
-            if (forward_check)
-                foreach (Piece p in pieces)
-                    if (p.out_moves.Count == 0 && p.in_moves.Count == 0 && p.Square.bids.Empty() && p.possible_knight_attack == 0)
-                        return new List<Move>();
+            foreach (Piece p in pieces)
+                if (p.out_moves.Count == 0 && p.in_moves.Count == 0 && p.Square.bids.Empty() && p.possible_knight_attack == 0)
+                    return new List<Move>();
 
             // Return list of possible moves sorted by heuristic value
             return heur_fun.SortByValue(valid_moves);

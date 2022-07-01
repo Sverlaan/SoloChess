@@ -47,7 +47,7 @@ namespace SoloChess
                     string piece_types = puzzle.GetPieceTypes();
 
                     // Write to output file
-                    sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + puzzle.pieces.Length + "," + piece_types);
+                    sw.WriteLine(Path.GetFileNameWithoutExtension(file) + "," + puzzle.pieces.Count + "," + piece_types);
                 }
             }
             sw.Close();
