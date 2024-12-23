@@ -1,4 +1,4 @@
-# Solving Solo Chess
+# Heuristics for Solving Solo Chess Puzzles
 This project is part of my bachelor thesis "Solving Solo Chess", which is made as a completion of my Bachelor education in Artificial Intelligence
 at Utrecht University. The paper is available [here](/BachelorThesis_StanVerlaan6813526.pdf).
 
